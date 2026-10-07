@@ -95,6 +95,9 @@ function parseArgs(argv: readonly string[]): Options | "help" {
         options.seed = parsed;
         break;
       }
+      case "--":
+        // pnpm/npm argument separator may survive script chaining; ignore it.
+        break;
       default:
         if (arg.startsWith("-")) throw new Error(`unknown option ${arg}`);
         options.command = arg;
