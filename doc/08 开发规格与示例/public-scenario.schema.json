@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kitchensched:public-scenario:0.2.0",
+  "title": "KitchenSched public scenario v0.2.0",
+  "$ref": "#/$defs/PublicScenario",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "UInt": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "PositiveInt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "ItemQty": {
+      "type": "object",
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "quantity": {
+          "$ref": "#/$defs/PositiveInt"
+        }
+      },
+      "required": [
+        "item_id",
+        "quantity"
+      ],
+      "additionalProperties": false
+    },
+    "Item": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "supply": {
+          "type": "string",
+          "enum": [
+            "unlimited_raw",
+            "produced"
+          ]
+        },
+        "orderable": {
+          "type": "boolean"
+        },
+        "price_minor": {
+          "$ref": "#/$defs/UInt"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "supply",
+        "orderable",
+        "price_minor"
+      ],
+      "additionalProperties": false
+    },
+    "StationDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "StationOption": {
+      "type": "object",
+      "properties": {
+        "station_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "duration_ms": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "max_batches": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        }
+      },
+      "required": [
+        "station_id",
+        "duration_ms",
+        "max_batches"
+      ],
+      "additionalProperties": false
+    },
+    "Recipe": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ItemQty"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ItemQty"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "station_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StationOption"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "inputs",
+        "outputs",
+        "station_options"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "init_wall_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "decision_wall_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "total_cpu_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "memory_mib": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_decisions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_actions_per_decision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_total_actions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "min_wake_delay_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_message_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_stderr_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_pids": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_writable_mib": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_orders_per_run": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Public enforced limit; release values require calibration."
+        }
+      },
+      "required": [
+        "init_wall_ms",
+        "decision_wall_ms",
+        "total_cpu_ms",
+        "memory_mib",
+        "max_decisions",
+        "max_actions_per_decision",
+        "max_total_actions",
+        "min_wake_delay_ms",
+        "max_message_bytes",
+        "max_stderr_bytes",
+        "max_pids",
+        "max_writable_mib",
+        "max_orders_per_run"
+      ],
+      "additionalProperties": false
+    },
+    "Rules": {
+      "type": "object",
+      "properties": {
+        "clock": {
+          "const": "paused_code"
+        },
+        "settlement": {
+          "const": "whole_order"
+        },
+        "batch_timing": {
+          "const": "fixed_within_capacity"
+        },
+        "finish_at_deadline_counts": {
+          "const": true
+        },
+        "delivery_duration_ms": {
+          "const": 0
+        },
+        "cancellation": {
+          "const": "unsupported"
+        }
+      },
+      "required": [
+        "clock",
+        "settlement",
+        "batch_timing",
+        "finish_at_deadline_counts",
+        "delivery_duration_ms",
+        "cancellation"
+      ],
+      "additionalProperties": false
+    },
+    "PublicScenario": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "0.2.0"
+        },
+        "scenario_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenario_version": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "medium",
+            "complex"
+          ]
+        },
+        "end_at_ms": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "currency_unit": {
+          "const": "credit_minor"
+        },
+        "currency_scale": {
+          "const": 100
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Item"
+          },
+          "minItems": 1,
+          "maxItems": 256
+        },
+        "recipes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Recipe"
+          },
+          "minItems": 1,
+          "maxItems": 512
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StationDef"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "rules": {
+          "$ref": "#/$defs/Rules"
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "scenario_id",
+        "scenario_version",
+        "difficulty",
+        "end_at_ms",
+        "currency_unit",
+        "currency_scale",
+        "items",
+        "recipes",
+        "stations",
+        "rules",
+        "limits"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

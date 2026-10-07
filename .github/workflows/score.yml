@@ -1,0 +1,78 @@
+name: score
+
+# The scoring path. The scored order stream is generated in memory from
+# secrets.SCORING_SEED and never written to disk, and no replay file is
+# published: results/ carries scores and state hashes only.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "submissions/**"
+      - "packages/**"
+      - "scenarios/**"
+      - "pnpm-lock.yaml"
+  workflow_dispatch:
+    inputs:
+      benchmark_version:
+        description: "benchmark version id written to results/<version>/"
+        required: false
+        default: "p1-auto"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: score-main
+  cancel-in-progress: false
+
+env:
+  BENCHMARK_VERSION: ${{ github.event.inputs.benchmark_version || 'p1-auto' }}
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Regenerate scenarios
+        run: pnpm gen:scenarios
+
+      - name: Fail fast without a seed
+        env:
+          SCORING_SEED: ${{ secrets.SCORING_SEED }}
+        run: |
+          if [ -z "$SCORING_SEED" ]; then
+            echo "::error::repository secret SCORING_SEED is not set"
+            exit 1
+          fi
+
+      # The seed reaches the host process only. The host deletes it from the
+      # environment before any submission module is imported and never passes
+      # it to a controller; candidates only ever see the public scenario.
+      - name: Score the matrix (sealed)
+        env:
+          SCORING_SEED: ${{ secrets.SCORING_SEED }}
+        run: pnpm score -- --sealed --benchmark "$BENCHMARK_VERSION"
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -z "$(git status --porcelain -- results)" ]; then
+            echo "results unchanged, nothing to commit"
+            exit 0
+          fi
+          git add results
+          git commit -m "chore(results): score ${BENCHMARK_VERSION} [skip ci]"
+          git push

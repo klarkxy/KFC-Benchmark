@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "protocol_version": {
+      "const": "0.2.0"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "python",
+        "typescript"
+      ]
+    },
+    "entrypoint": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      },
+      "minItems": 1,
+      "maxItems": 16
+    }
+  },
+  "required": [
+    "protocol_version",
+    "language",
+    "entrypoint"
+  ],
+  "additionalProperties": false
+}

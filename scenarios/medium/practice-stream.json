@@ -1,0 +1,313 @@
+{
+  "version": "1",
+  "scenario_id": "medium-01",
+  "seed": 20261007,
+  "generator_version": "scen/0.3.0",
+  "difficulty": "medium",
+  "orders": [
+    {
+      "at_ms": 60000,
+      "items": [
+        {
+          "item_id": "p.fries",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 72000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 84000,
+      "items": [
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 96000,
+      "items": [
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 108000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 120000,
+      "items": [
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 132000,
+      "items": [
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 144000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 156000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 168000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 180000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 192000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 204000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 216000,
+      "items": [
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 228000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 240000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 252000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "at_ms": 264000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 276000,
+      "items": [
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 288000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 3
+        }
+      ]
+    }
+  ]
+}

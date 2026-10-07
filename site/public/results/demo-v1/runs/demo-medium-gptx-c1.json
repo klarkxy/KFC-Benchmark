@@ -1,0 +1,30 @@
+{
+  "run_id": "demo-medium-gptx-c1",
+  "benchmark_version": "demo-v1",
+  "difficulty": "medium",
+  "scenario_id": "demo-medium-rush",
+  "scenario_hash": "a3ce0a3fcb40d9a5795e351828618ee5faa5d0a4df60aa5147ae61e8d203e60a",
+  "submission": {
+    "submission_id": "sub-gpt-x-1",
+    "source_sha256": "aa29a4dbfb199cac3ab1a825280f2aa95e2bfc645f8aad744fac3bedd69cbc80",
+    "model_label": "gpt-x",
+    "generation": 1
+  },
+  "result": {
+    "status": "completed",
+    "score_minor": 17400,
+    "revenue_minor": 17400,
+    "delivered_orders": 10,
+    "failure_code": null,
+    "final_action_results": [],
+    "final_wake_result": null
+  },
+  "state_hash": "47bca8f6acc747614ce2b8cb69eb4068bcce179ca92a00fdfcfb8b958c52765c",
+  "replay": "demo-v1/runs/replays/demo-medium-gptx-c1.json",
+  "wall": {
+    "decisions": 30,
+    "total_actions": 52,
+    "duration_ms": 740
+  },
+  "finished_at_iso": "2026-10-05T12:00:00.000Z"
+}

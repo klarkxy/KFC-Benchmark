@@ -1,0 +1,992 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kitchensched:controller:0.2.0",
+  "title": "KitchenSched JSON Lines messages v0.2.0",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Init"
+    },
+    {
+      "$ref": "#/$defs/Ready"
+    },
+    {
+      "$ref": "#/$defs/Observe"
+    },
+    {
+      "$ref": "#/$defs/Decision"
+    },
+    {
+      "$ref": "#/$defs/End"
+    }
+  ],
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "UInt": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "PositiveInt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "Hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ItemQty": {
+      "type": "object",
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "quantity": {
+          "$ref": "#/$defs/PositiveInt"
+        }
+      },
+      "required": [
+        "item_id",
+        "quantity"
+      ],
+      "additionalProperties": false
+    },
+    "LotQty": {
+      "type": "object",
+      "properties": {
+        "lot_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "quantity": {
+          "$ref": "#/$defs/PositiveInt"
+        }
+      },
+      "required": [
+        "lot_id",
+        "quantity"
+      ],
+      "additionalProperties": false
+    },
+    "Item": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "supply": {
+          "type": "string",
+          "enum": [
+            "unlimited_raw",
+            "produced"
+          ]
+        },
+        "orderable": {
+          "type": "boolean"
+        },
+        "price_minor": {
+          "$ref": "#/$defs/UInt"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "supply",
+        "orderable",
+        "price_minor"
+      ],
+      "additionalProperties": false
+    },
+    "StationDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "StationOption": {
+      "type": "object",
+      "properties": {
+        "station_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "duration_ms": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "max_batches": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        }
+      },
+      "required": [
+        "station_id",
+        "duration_ms",
+        "max_batches"
+      ],
+      "additionalProperties": false
+    },
+    "Recipe": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ItemQty"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ItemQty"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "station_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StationOption"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "inputs",
+        "outputs",
+        "station_options"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "init_wall_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "decision_wall_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "total_cpu_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "memory_mib": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_decisions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_actions_per_decision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_total_actions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "min_wake_delay_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_message_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_stderr_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_pids": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_writable_mib": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991,
+          "description": "Public enforced limit; release values require calibration."
+        },
+        "max_orders_per_run": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Public enforced limit; release values require calibration."
+        }
+      },
+      "required": [
+        "init_wall_ms",
+        "decision_wall_ms",
+        "total_cpu_ms",
+        "memory_mib",
+        "max_decisions",
+        "max_actions_per_decision",
+        "max_total_actions",
+        "min_wake_delay_ms",
+        "max_message_bytes",
+        "max_stderr_bytes",
+        "max_pids",
+        "max_writable_mib",
+        "max_orders_per_run"
+      ],
+      "additionalProperties": false
+    },
+    "Rules": {
+      "type": "object",
+      "properties": {
+        "clock": {
+          "const": "paused_code"
+        },
+        "settlement": {
+          "const": "whole_order"
+        },
+        "batch_timing": {
+          "const": "fixed_within_capacity"
+        },
+        "finish_at_deadline_counts": {
+          "const": true
+        },
+        "delivery_duration_ms": {
+          "const": 0
+        },
+        "cancellation": {
+          "const": "unsupported"
+        }
+      },
+      "required": [
+        "clock",
+        "settlement",
+        "batch_timing",
+        "finish_at_deadline_counts",
+        "delivery_duration_ms",
+        "cancellation"
+      ],
+      "additionalProperties": false
+    },
+    "PublicScenario": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "0.2.0"
+        },
+        "scenario_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scenario_version": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "medium",
+            "complex"
+          ]
+        },
+        "end_at_ms": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "currency_unit": {
+          "const": "credit_minor"
+        },
+        "currency_scale": {
+          "const": 100
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Item"
+          },
+          "minItems": 1,
+          "maxItems": 256
+        },
+        "recipes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Recipe"
+          },
+          "minItems": 1,
+          "maxItems": 512
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StationDef"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "rules": {
+          "$ref": "#/$defs/Rules"
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "scenario_id",
+        "scenario_version",
+        "difficulty",
+        "end_at_ms",
+        "currency_unit",
+        "currency_scale",
+        "items",
+        "recipes",
+        "stations",
+        "rules",
+        "limits"
+      ],
+      "additionalProperties": false
+    },
+    "Order": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "arrived_at_ms": {
+          "$ref": "#/$defs/UInt"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ItemQty"
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "value_minor": {
+          "$ref": "#/$defs/PositiveInt"
+        }
+      },
+      "required": [
+        "id",
+        "arrived_at_ms",
+        "items",
+        "value_minor"
+      ],
+      "additionalProperties": false
+    },
+    "Lot": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "quantity": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "produced_at_ms": {
+          "$ref": "#/$defs/UInt"
+        },
+        "task_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "id",
+        "item_id",
+        "quantity",
+        "produced_at_ms",
+        "task_id"
+      ],
+      "additionalProperties": false
+    },
+    "Task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "recipe_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "station_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "batches": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "started_at_ms": {
+          "$ref": "#/$defs/UInt"
+        },
+        "finish_at_ms": {
+          "$ref": "#/$defs/UInt"
+        }
+      },
+      "required": [
+        "id",
+        "recipe_id",
+        "station_id",
+        "batches",
+        "started_at_ms",
+        "finish_at_ms"
+      ],
+      "additionalProperties": false
+    },
+    "StationState": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "task_id"
+      ],
+      "additionalProperties": false
+    },
+    "ActionResult": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "OK",
+            "UNKNOWN_RECIPE",
+            "UNKNOWN_STATION",
+            "INCOMPATIBLE_STATION",
+            "STATION_BUSY",
+            "INVALID_BATCH",
+            "UNKNOWN_LOT",
+            "DUPLICATE_LOT",
+            "INVALID_INPUT",
+            "INSUFFICIENT_INPUT",
+            "UNKNOWN_ORDER",
+            "INCOMPLETE_ORDER",
+            "ALREADY_DELIVERED",
+            "ACTION_ID_CONFLICT",
+            "DEADLINE_REACHED"
+          ]
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "replayed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "action_id",
+        "ok",
+        "code",
+        "entity_id",
+        "replayed"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ok": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "code": {
+                "const": "OK"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "code": {
+                "not": {
+                  "const": "OK"
+                }
+              },
+              "entity_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WakeResult": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "SCHEDULED",
+            "CANCELED",
+            "INVALID_WAKE_TIME"
+          ]
+        },
+        "pending_wake_at_ms": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ok",
+        "code",
+        "pending_wake_at_ms"
+      ],
+      "additionalProperties": false
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "now_ms": {
+          "$ref": "#/$defs/UInt"
+        },
+        "state_version": {
+          "$ref": "#/$defs/UInt"
+        },
+        "final": {
+          "type": "boolean"
+        },
+        "orders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Order"
+          },
+          "minItems": 0
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Lot"
+          },
+          "minItems": 0
+        },
+        "running_tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Task"
+          },
+          "minItems": 0
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StationState"
+          },
+          "minItems": 0
+        },
+        "revenue_minor": {
+          "$ref": "#/$defs/UInt"
+        },
+        "previous_results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActionResult"
+          },
+          "minItems": 0
+        },
+        "previous_wake_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WakeResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pending_wake_at_ms": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "now_ms",
+        "state_version",
+        "final",
+        "orders",
+        "inventory",
+        "running_tasks",
+        "stations",
+        "revenue_minor",
+        "previous_results",
+        "previous_wake_result",
+        "pending_wake_at_ms"
+      ],
+      "additionalProperties": false
+    },
+    "StartAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "start"
+        },
+        "action_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "recipe_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "station_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "batches": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "input_lots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LotQty"
+          },
+          "minItems": 0,
+          "maxItems": 1024
+        }
+      },
+      "required": [
+        "type",
+        "action_id",
+        "recipe_id",
+        "station_id",
+        "batches",
+        "input_lots"
+      ],
+      "additionalProperties": false
+    },
+    "DeliverAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "deliver"
+        },
+        "action_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "order_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "output_lots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LotQty"
+          },
+          "minItems": 1,
+          "maxItems": 1024
+        }
+      },
+      "required": [
+        "type",
+        "action_id",
+        "order_id",
+        "output_lots"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/StartAction"
+        },
+        {
+          "$ref": "#/$defs/DeliverAction"
+        }
+      ]
+    },
+    "Init": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "init"
+        },
+        "protocol_version": {
+          "const": "0.2.0"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_token": {
+          "$ref": "#/$defs/Id"
+        },
+        "policy_seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "config": {
+          "$ref": "#/$defs/PublicScenario"
+        }
+      },
+      "required": [
+        "type",
+        "protocol_version",
+        "request_id",
+        "run_token",
+        "policy_seed",
+        "config"
+      ],
+      "additionalProperties": false
+    },
+    "Ready": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ready"
+        },
+        "protocol_version": {
+          "const": "0.2.0"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "type",
+        "protocol_version",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "Observe": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "observe"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "observation": {
+          "$ref": "#/$defs/Observation"
+        }
+      },
+      "required": [
+        "type",
+        "request_id",
+        "observation"
+      ],
+      "additionalProperties": false
+    },
+    "Decision": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "decision"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "observed_version": {
+          "$ref": "#/$defs/UInt"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "minItems": 0,
+          "maxItems": 1024
+        },
+        "wake_at_ms": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "request_id",
+        "observed_version",
+        "actions",
+        "wake_at_ms"
+      ],
+      "additionalProperties": false
+    },
+    "EndResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "candidate_failed",
+            "infra_failed",
+            "canceled",
+            "disqualified"
+          ]
+        },
+        "score_minor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revenue_minor": {
+          "$ref": "#/$defs/UInt"
+        },
+        "delivered_orders": {
+          "$ref": "#/$defs/UInt"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "final_action_results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ActionResult"
+          },
+          "minItems": 0
+        },
+        "final_wake_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WakeResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "score_minor",
+        "revenue_minor",
+        "delivered_orders",
+        "failure_code",
+        "final_action_results",
+        "final_wake_result"
+      ],
+      "additionalProperties": false
+    },
+    "End": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "end"
+        },
+        "result": {
+          "$ref": "#/$defs/EndResult"
+        }
+      },
+      "required": [
+        "type",
+        "result"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

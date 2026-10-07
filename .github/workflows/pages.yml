@@ -1,0 +1,84 @@
+name: pages
+
+# Deploys the static site. results/ is overlaid onto the site's own
+# public/results/ so a scored leaderboard is live without a rebuild commit.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "results/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+  workflow_run:
+    workflows: ["score"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-main
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref_name }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Overlay results into the site
+        run: |
+          mkdir -p site/public/results
+          cp -r results/. site/public/results/
+
+      # The overlay overwrites results/index.json, which would drop version
+      # entries the site ships on its own (demo-v1). Generated entries win;
+      # site-only entries are carried over.
+      - name: Merge site-only index entries
+        run: |
+          node --input-type=commonjs -e '
+            const fs = require("fs");
+            const sitePath = "site/public/results/index.json";
+            const site = fs.existsSync(sitePath) ? JSON.parse(fs.readFileSync(sitePath, "utf8")) : { versions: [] };
+            const generated = JSON.parse(fs.readFileSync("results/index.json", "utf8"));
+            const known = new Set(generated.versions.map((entry) => entry.benchmark_version));
+            for (const entry of site.versions) {
+              if (!known.has(entry.benchmark_version)) generated.versions.push(entry);
+            }
+            fs.writeFileSync(sitePath, JSON.stringify(generated, null, 2) + "\n");
+          '
+
+      - run: pnpm --filter @kitchensched/site build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

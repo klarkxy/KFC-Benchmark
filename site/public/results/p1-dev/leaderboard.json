@@ -1,0 +1,76 @@
+{
+  "benchmark_version": "p1-dev",
+  "generated_at_iso": "2026-10-07T14:01:24.699Z",
+  "engine_version": "core/0.3.0",
+  "protocol_version": "0.3.0-web",
+  "rows": [
+    {
+      "submission": {
+        "submission_id": "sub-baselines-greedy-1",
+        "source_sha256": "ee43d82f2109f05f4680d82fec36cee06f8162db45d65390fe31170e5ecca2d0",
+        "model_label": "baselines/greedy",
+        "generation": 1
+      },
+      "difficulty": "easy",
+      "cases": 1,
+      "completed": 1,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "mean_score_minor": 54570,
+      "run_ids": [
+        "baselines-greedy-gen1-easy-practice"
+      ]
+    },
+    {
+      "submission": {
+        "submission_id": "sub-baselines-greedy-1",
+        "source_sha256": "ee43d82f2109f05f4680d82fec36cee06f8162db45d65390fe31170e5ecca2d0",
+        "model_label": "baselines/greedy",
+        "generation": 1
+      },
+      "difficulty": "medium",
+      "cases": 1,
+      "completed": 1,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "mean_score_minor": 121910,
+      "run_ids": [
+        "baselines-greedy-gen1-medium-practice"
+      ]
+    },
+    {
+      "submission": {
+        "submission_id": "sub-baselines-no-op-1",
+        "source_sha256": "fbdb3c7b9806d9f8b7f53535d774c03813ef3357276720e08d5e9d754e313762",
+        "model_label": "baselines/no-op",
+        "generation": 1
+      },
+      "difficulty": "easy",
+      "cases": 1,
+      "completed": 1,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "mean_score_minor": 0,
+      "run_ids": [
+        "baselines-no-op-gen1-easy-practice"
+      ]
+    },
+    {
+      "submission": {
+        "submission_id": "sub-baselines-no-op-1",
+        "source_sha256": "fbdb3c7b9806d9f8b7f53535d774c03813ef3357276720e08d5e9d754e313762",
+        "model_label": "baselines/no-op",
+        "generation": 1
+      },
+      "difficulty": "medium",
+      "cases": 1,
+      "completed": 1,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "mean_score_minor": 0,
+      "run_ids": [
+        "baselines-no-op-gen1-medium-practice"
+      ]
+    }
+  ]
+}

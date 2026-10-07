@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "checks": [
+    "Public result/game difficulty enums match existing easy/medium/complex contract",
+    "Connection/experiment examples valid; owner override rejected by schema",
+    "Credential write-only declaration and explicit response property sets",
+    "Fixed prompt/tool draft hashes match; profile explicitly non-release",
+    "Four proposed tool parameter schemas pass meta-schema validation",
+    "35 unique v0.3 acceptance definitions explicitly marked not executed",
+    "Browser adapter TypeScript declarations compile",
+    "40 HTTP operation declarations; 22 added to the v0.2 contract"
+  ],
+  "new_acceptance_definitions": 35,
+  "new_behavior_tests_executed": 0,
+  "model_or_provider_called": false,
+  "harness_implemented": false,
+  "sandbox_security_tested": false,
+  "website_implemented": false,
+  "release_ready": false
+}

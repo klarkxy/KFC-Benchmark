@@ -1,0 +1,30 @@
+{
+  "run_id": "demo-easy-greedy-c1",
+  "benchmark_version": "demo-v1",
+  "difficulty": "easy",
+  "scenario_id": "demo-easy-rush",
+  "scenario_hash": "d593d587872cdf5d0f45be5a29bd9d7a72667f918d08e475ece543d8bf86dae9",
+  "submission": {
+    "submission_id": "sub-baseline/greedy-1",
+    "source_sha256": "30d048a14d384fe5af132b26daab99e89b3cf82316aa317008aec69edb138f2a",
+    "model_label": "baseline/greedy",
+    "generation": 1
+  },
+  "result": {
+    "status": "completed",
+    "score_minor": 10500,
+    "revenue_minor": 10500,
+    "delivered_orders": 9,
+    "failure_code": null,
+    "final_action_results": [],
+    "final_wake_result": null
+  },
+  "state_hash": "f54be3f01b1ec150fb73edf29e7f9f35642f139380ea87c0c5d16331708d21d5",
+  "replay": "demo-v1/runs/replays/demo-easy-greedy-c1.json",
+  "wall": {
+    "decisions": 22,
+    "total_actions": 40,
+    "duration_ms": 628
+  },
+  "finished_at_iso": "2026-10-05T12:00:00.000Z"
+}

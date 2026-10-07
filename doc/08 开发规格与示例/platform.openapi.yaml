@@ -1,0 +1,3676 @@
+openapi: 3.1.1
+info:
+  title: KitchenSched Platform API
+  version: 0.3.0-draft
+  description: Design contract, not deployed. v0.3 adds BYOK connections, experiment orchestration, personal collections,
+    public methodology and revocable sharing. Controller JSONL remains 0.2.0. x-stage is planning metadata, not
+    authorization. Release blockers are in harness/profile.draft.json.
+servers:
+- url: /api/v1
+security:
+- BearerAuth: []
+tags:
+- name: System
+- name: Artifacts
+- name: Submissions
+- name: Benchmarks
+- name: Runs
+- name: Evaluations
+- name: Leaderboards
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      tags:
+      - System
+      summary: getHealth
+      description: ''
+      x-roles:
+      - viewer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+  /artifacts:
+    post:
+      operationId: uploadArtifact
+      tags:
+      - Artifacts
+      summary: uploadArtifact
+      description: Upload ZIP bytes; quarantine before extraction. Maximum compressed 10 MiB, expanded 50 MiB and
+        1,000 files as provisional deployment limits. Reject traversal and symlinks. Not a remote URL fetcher.
+      x-roles:
+      - submitter
+      - organizer
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/zip:
+            schema:
+              type: string
+              format: binary
+  /artifacts/{artifact_id}:
+    get:
+      operationId: getArtifact
+      tags:
+      - Artifacts
+      summary: getArtifact
+      description: ''
+      x-roles:
+      - owner
+      - organizer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+  /submissions:
+    post:
+      operationId: createSubmission
+      tags:
+      - Submissions
+      summary: createSubmission
+      description: Only a ready artifact owned by the principal can be referenced. model_config_id is pre-registered
+        through an audited organizer configuration flow. Returns validating submission.
+      x-roles:
+      - submitter
+      - organizer
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+  /submissions/{submission_id}:
+    get:
+      operationId: getSubmission
+      tags:
+      - Submissions
+      summary: getSubmission
+      description: ''
+      x-roles:
+      - owner
+      - organizer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: submission_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+  /submissions/{submission_id}/freeze:
+    post:
+      operationId: freezeSubmission
+      tags:
+      - Submissions
+      summary: freezeSubmission
+      description: Only ready can become frozen. Repeating freeze is harmless. New bytes require a new submission.
+      x-roles:
+      - owner
+      - organizer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: submission_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+  /benchmarks:
+    get:
+      operationId: listBenchmarks
+      tags:
+      - Benchmarks
+      summary: listBenchmarks
+      description: ''
+      x-roles:
+      - viewer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkPage'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+  /benchmarks/{benchmark_id}/scenarios/{scenario_id}:
+    get:
+      operationId: getPublicScenario
+      tags:
+      - Benchmarks
+      summary: getPublicScenario
+      description: Only published public practice scenarios. Hidden configurations are never enumerated here.
+      x-roles:
+      - viewer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicScenario'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      parameters:
+      - name: benchmark_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: scenario_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+  /practice-runs:
+    post:
+      operationId: createPracticeRun
+      tags:
+      - Runs
+      summary: createPracticeRun
+      description: Ready or frozen source is snapshotted. Public scenario/case only; excluded from the official
+        leaderboard.
+      x-roles:
+      - submitter
+      - organizer
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeCreate'
+  /evaluations:
+    post:
+      operationId: createEvaluation
+      tags:
+      - Evaluations
+      summary: createEvaluation
+      description: Require frozen submissions. Transactionally snapshot the complete case matrix, engine, limits
+        and artifact hashes.
+      x-roles:
+      - organizer
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationCreate'
+  /evaluations/{evaluation_id}:
+    get:
+      operationId: getEvaluation
+      tags:
+      - Evaluations
+      summary: getEvaluation
+      description: ''
+      x-roles:
+      - organizer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+  /runs/{run_id}:
+    get:
+      operationId: getRun
+      tags:
+      - Runs
+      summary: getRun
+      description: Official hidden runs are organizer-only until release. Apply projection and ownership; anonymous
+        access only when explicitly released.
+      x-roles:
+      - owner-of-practice
+      - organizer
+      - viewer-of-released-run
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      security:
+      - BearerAuth: []
+      - {}
+  /runs/{run_id}/events:
+    get:
+      operationId: getRunEvents
+      tags:
+      - Runs
+      summary: getRunEvents
+      description: Exclusive event cursor. Authorized immutable replay only; never stream hidden data to candidates.
+        When no items are returned, next_after_seq equals the request cursor.
+      x-roles:
+      - owner-of-practice
+      - organizer
+      - viewer-of-released-run
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPage'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: after_seq
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 500
+      security:
+      - BearerAuth: []
+      - {}
+  /runs/{run_id}/checkpoints:
+    get:
+      operationId: getRunCheckpoint
+      tags:
+      - Runs
+      summary: getRunCheckpoint
+      description: Nearest authorized checkpoint at or before requested simulation time. Initial checkpoint is seq
+        0, time 0. Continue events with after_seq=checkpoint_seq.
+      x-roles:
+      - owner-of-practice
+      - organizer
+      - viewer-of-released-run
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Checkpoint'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: at_or_before_ms
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+      security:
+      - BearerAuth: []
+      - {}
+  /runs/{run_id}/replay-manifest:
+    get:
+      operationId: getReplayManifest
+      tags:
+      - Runs
+      summary: getReplayManifest
+      description: Releasing leaderboard scores does not release replays. Full trajectories require separate approval
+        or a retired/demo dataset.
+      x-roles:
+      - owner-of-practice
+      - organizer
+      - viewer-of-released-run
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayManifest'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      security:
+      - BearerAuth: []
+      - {}
+  /runs/{run_id}/cancel:
+    post:
+      operationId: cancelRun
+      tags:
+      - Runs
+      summary: cancelRun
+      description: Official cancellation remains an unresolved matrix cell and must be audited and rerun, not scored
+        zero or omitted.
+      x-roles:
+      - owner-of-practice
+      - organizer
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRequest'
+  /leaderboards/{benchmark_id}:
+    get:
+      operationId: getLeaderboard
+      tags:
+      - Leaderboards
+      summary: getLeaderboard
+      description: Frozen snapshot, one difficulty. Candidate failures remain zeros. Equal scores share rank. Cursor
+        binds the immutable snapshot to avoid moving pages.
+      x-roles:
+      - viewer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Leaderboard'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+      parameters:
+      - name: benchmark_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: difficulty
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+  /leaderboards/{benchmark_id}/publish:
+    post:
+      operationId: publishLeaderboard
+      tags:
+      - Leaderboards
+      summary: publishLeaderboard
+      description: Reject unresolved infrastructure cells, incomplete planned generation matrix or hash mismatch
+        with 409. Do not automatically publish source code or replay files.
+      x-roles:
+      - organizer
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResult'
+        default:
+          description: Problem Details. Unauthorized hidden resources return 404. Rate limits include Retry-After.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      parameters:
+      - name: benchmark_id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+        description: Scoped by principal, method and path. Same body returns the original object; changed body returns
+          409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishCreate'
+  /me:
+    get:
+      operationId: getCurrentUser
+      summary: Read current authenticated identity
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /model-connections:
+    post:
+      operationId: createModelConnection
+      summary: Create private model connection with write-only key
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connection'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionCreate'
+      description: MVP organizer only. Later authenticated submitters may access only their own objects under the
+        same ownership, egress and budget checks.
+    get:
+      operationId: listModelConnections
+      summary: List owned model connections
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionPage'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      description: MVP organizer only. Later authenticated submitters may access only their own objects under the
+        same ownership, egress and budget checks.
+  /model-connections/{connection_id}:
+    get:
+      operationId: getModelConnection
+      summary: Read owned model connection without credential
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: connection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connection'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+    delete:
+      operationId: revokeModelConnection
+      summary: Revoke credential and prevent further requests
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: connection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '204':
+          description: Success
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /model-connections/{connection_id}/probe:
+    post:
+      operationId: probeModelConnection
+      summary: Explicit bounded connectivity/protocol test
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: connection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionProbeResult'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionProbeRequest'
+  /experiments:
+    post:
+      operationId: createExperiment
+      summary: Queue fixed-method model generation and evaluation
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentCreate'
+      description: MVP organizer only. Later authenticated submitters may access only their own objects under the
+        same ownership, egress and budget checks.
+    get:
+      operationId: listExperiments
+      summary: List owned experiments
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentPage'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      description: MVP organizer only. Later authenticated submitters may access only their own objects under the
+        same ownership, egress and budget checks.
+  /experiments/{experiment_id}:
+    get:
+      operationId: getExperiment
+      summary: Read experiment progress
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: experiment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /experiments/{experiment_id}/cancel:
+    post:
+      operationId: cancelExperiment
+      summary: Request cancellation and cleanup
+      x-stage: mvp
+      x-roles:
+      - organizer
+      parameters:
+      - name: experiment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '202':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experiment'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /collections:
+    post:
+      operationId: createCollection
+      summary: Create personal result collection
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCreate'
+    get:
+      operationId: listCollections
+      summary: List personal collections
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionPage'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /collections/{collection_id}:
+    get:
+      operationId: getCollection
+      summary: Read authorized personal collection
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+    delete:
+      operationId: deleteCollection
+      summary: Delete collection only; retain underlying results
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '204':
+          description: Success
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /collections/{collection_id}/items:
+    post:
+      operationId: addCollectionItem
+      summary: Add authorized immutable result
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionItemCreate'
+  /collections/{collection_id}/items/{result_id}:
+    delete:
+      operationId: removeCollectionItem
+      summary: Remove result reference
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: result_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '204':
+          description: Success
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /shares:
+    post:
+      operationId: createShare
+      summary: Create explicit revocable result or collection share
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareCreated'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareCreate'
+  /shares/{share_id}:
+    delete:
+      operationId: revokeShare
+      summary: Revoke owned share
+      x-stage: later
+      x-roles:
+      - organizer
+      - submitter
+      parameters:
+      - name: share_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 200
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required when authenticating by session cookie; omitted for bearer-only clients.
+      responses:
+        '204':
+          description: Success
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - BearerAuth: []
+      - SessionCookie: []
+  /public/shares/{share_token}:
+    get:
+      operationId: readPublicShare
+      summary: Resolve active share token to white-list projection
+      x-stage: later
+      x-roles:
+      - viewer
+      parameters:
+      - name: share_token
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicShare'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+  /public/methodologies/{methodology_id}:
+    get:
+      operationId: getPublishedMethodology
+      summary: Read complete published fixed-input method
+      x-stage: mvp
+      x-roles:
+      - viewer
+      parameters:
+      - name: methodology_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MethodologyPublic'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+  /public/results/{result_id}:
+    get:
+      operationId: getPublishedResult
+      summary: Read published immutable result
+      x-stage: mvp
+      x-roles:
+      - viewer
+      parameters:
+      - name: result_id
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicResult'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+  /public/games:
+    get:
+      operationId: listPlayableGames
+      summary: List public HTML5 kitchen scenarios
+      x-stage: mvp
+      x-roles:
+      - viewer
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameCatalogEntryPage'
+        default:
+          description: Stable problem response. Unauthorized private resources return 404.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Deployment-issued credential. Object ownership and roles are enforced server-side; no credentials
+        reach candidates.
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-ks_session
+      description: HttpOnly Secure SameSite cookie. All cookie-authenticated writes require CSRF header and same-origin
+        validation.
+  schemas:
+    Id:
+      type: string
+      pattern: ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$
+      minLength: 1
+      maxLength: 128
+    UInt:
+      type: integer
+      minimum: 0
+      maximum: 9007199254740991
+    PositiveInt:
+      type: integer
+      minimum: 1
+      maximum: 9007199254740991
+    Hash:
+      type: string
+      pattern: ^[0-9a-f]{64}$
+    ItemQty:
+      type: object
+      properties:
+        item_id:
+          $ref: '#/components/schemas/Id'
+        quantity:
+          $ref: '#/components/schemas/PositiveInt'
+      required:
+      - item_id
+      - quantity
+      additionalProperties: false
+    LotQty:
+      type: object
+      properties:
+        lot_id:
+          $ref: '#/components/schemas/Id'
+        quantity:
+          $ref: '#/components/schemas/PositiveInt'
+      required:
+      - lot_id
+      - quantity
+      additionalProperties: false
+    Item:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+          maxLength: 128
+        supply:
+          type: string
+          enum:
+          - unlimited_raw
+          - produced
+        orderable:
+          type: boolean
+        price_minor:
+          $ref: '#/components/schemas/UInt'
+      required:
+      - id
+      - name
+      - supply
+      - orderable
+      - price_minor
+      additionalProperties: false
+    StationDef:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        kind:
+          type: string
+          maxLength: 64
+        name:
+          type: string
+          maxLength: 128
+      required:
+      - id
+      - kind
+      - name
+      additionalProperties: false
+    StationOption:
+      type: object
+      properties:
+        station_id:
+          $ref: '#/components/schemas/Id'
+        duration_ms:
+          $ref: '#/components/schemas/PositiveInt'
+        max_batches:
+          type: integer
+          minimum: 1
+          maximum: 128
+      required:
+      - station_id
+      - duration_ms
+      - max_batches
+      additionalProperties: false
+    Recipe:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+          maxLength: 128
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemQty'
+          minItems: 1
+          maxItems: 32
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemQty'
+          minItems: 1
+          maxItems: 32
+        station_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/StationOption'
+          minItems: 1
+          maxItems: 64
+      required:
+      - id
+      - name
+      - inputs
+      - outputs
+      - station_options
+      additionalProperties: false
+    Limits:
+      type: object
+      properties:
+        init_wall_ms:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        decision_wall_ms:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        total_cpu_ms:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        memory_mib:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_decisions:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_actions_per_decision:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          description: Public enforced limit; release values require calibration.
+        max_total_actions:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        min_wake_delay_ms:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_message_bytes:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_stderr_bytes:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_pids:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_writable_mib:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+          description: Public enforced limit; release values require calibration.
+        max_orders_per_run:
+          type: integer
+          minimum: 1
+          maximum: 1024
+          description: Public enforced limit; release values require calibration.
+      required:
+      - init_wall_ms
+      - decision_wall_ms
+      - total_cpu_ms
+      - memory_mib
+      - max_decisions
+      - max_actions_per_decision
+      - max_total_actions
+      - min_wake_delay_ms
+      - max_message_bytes
+      - max_stderr_bytes
+      - max_pids
+      - max_writable_mib
+      - max_orders_per_run
+      additionalProperties: false
+    Rules:
+      type: object
+      properties:
+        clock:
+          const: paused_code
+        settlement:
+          const: whole_order
+        batch_timing:
+          const: fixed_within_capacity
+        finish_at_deadline_counts:
+          const: true
+        delivery_duration_ms:
+          const: 0
+        cancellation:
+          const: unsupported
+      required:
+      - clock
+      - settlement
+      - batch_timing
+      - finish_at_deadline_counts
+      - delivery_duration_ms
+      - cancellation
+      additionalProperties: false
+    PublicScenario:
+      type: object
+      properties:
+        protocol_version:
+          const: 0.2.0
+        scenario_id:
+          $ref: '#/components/schemas/Id'
+        scenario_version:
+          type: string
+          maxLength: 64
+        difficulty:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+        end_at_ms:
+          $ref: '#/components/schemas/PositiveInt'
+        currency_unit:
+          const: credit_minor
+        currency_scale:
+          const: 100
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+          minItems: 1
+          maxItems: 256
+        recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipe'
+          minItems: 1
+          maxItems: 512
+        stations:
+          type: array
+          items:
+            $ref: '#/components/schemas/StationDef'
+          minItems: 1
+          maxItems: 64
+        rules:
+          $ref: '#/components/schemas/Rules'
+        limits:
+          $ref: '#/components/schemas/Limits'
+      required:
+      - protocol_version
+      - scenario_id
+      - scenario_version
+      - difficulty
+      - end_at_ms
+      - currency_unit
+      - currency_scale
+      - items
+      - recipes
+      - stations
+      - rules
+      - limits
+      additionalProperties: false
+    Order:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        arrived_at_ms:
+          $ref: '#/components/schemas/UInt'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemQty'
+          minItems: 1
+          maxItems: 32
+        value_minor:
+          $ref: '#/components/schemas/PositiveInt'
+      required:
+      - id
+      - arrived_at_ms
+      - items
+      - value_minor
+      additionalProperties: false
+    Lot:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        item_id:
+          $ref: '#/components/schemas/Id'
+        quantity:
+          $ref: '#/components/schemas/PositiveInt'
+        produced_at_ms:
+          $ref: '#/components/schemas/UInt'
+        task_id:
+          $ref: '#/components/schemas/Id'
+      required:
+      - id
+      - item_id
+      - quantity
+      - produced_at_ms
+      - task_id
+      additionalProperties: false
+    Task:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        recipe_id:
+          $ref: '#/components/schemas/Id'
+        station_id:
+          $ref: '#/components/schemas/Id'
+        batches:
+          $ref: '#/components/schemas/PositiveInt'
+        started_at_ms:
+          $ref: '#/components/schemas/UInt'
+        finish_at_ms:
+          $ref: '#/components/schemas/UInt'
+      required:
+      - id
+      - recipe_id
+      - station_id
+      - batches
+      - started_at_ms
+      - finish_at_ms
+      additionalProperties: false
+    StationState:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        task_id:
+          anyOf:
+          - $ref: '#/components/schemas/Id'
+          - type: 'null'
+      required:
+      - id
+      - task_id
+      additionalProperties: false
+    ActionResult:
+      type: object
+      properties:
+        action_id:
+          $ref: '#/components/schemas/Id'
+        ok:
+          type: boolean
+        code:
+          type: string
+          enum:
+          - OK
+          - UNKNOWN_RECIPE
+          - UNKNOWN_STATION
+          - INCOMPATIBLE_STATION
+          - STATION_BUSY
+          - INVALID_BATCH
+          - UNKNOWN_LOT
+          - DUPLICATE_LOT
+          - INVALID_INPUT
+          - INSUFFICIENT_INPUT
+          - UNKNOWN_ORDER
+          - INCOMPLETE_ORDER
+          - ALREADY_DELIVERED
+          - ACTION_ID_CONFLICT
+          - DEADLINE_REACHED
+        entity_id:
+          anyOf:
+          - $ref: '#/components/schemas/Id'
+          - type: 'null'
+        replayed:
+          type: boolean
+      required:
+      - action_id
+      - ok
+      - code
+      - entity_id
+      - replayed
+      additionalProperties: false
+      allOf:
+      - if:
+          properties:
+            ok:
+              const: true
+        then:
+          properties:
+            code:
+              const: OK
+        else:
+          properties:
+            code:
+              not:
+                const: OK
+            entity_id:
+              type: 'null'
+    WakeResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        code:
+          type: string
+          enum:
+          - SCHEDULED
+          - CANCELED
+          - INVALID_WAKE_TIME
+        pending_wake_at_ms:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+      required:
+      - ok
+      - code
+      - pending_wake_at_ms
+      additionalProperties: false
+    Observation:
+      type: object
+      properties:
+        now_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        final:
+          type: boolean
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          minItems: 0
+        inventory:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lot'
+          minItems: 0
+        running_tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+          minItems: 0
+        stations:
+          type: array
+          items:
+            $ref: '#/components/schemas/StationState'
+          minItems: 0
+        revenue_minor:
+          $ref: '#/components/schemas/UInt'
+        previous_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResult'
+          minItems: 0
+        previous_wake_result:
+          anyOf:
+          - $ref: '#/components/schemas/WakeResult'
+          - type: 'null'
+        pending_wake_at_ms:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+      required:
+      - now_ms
+      - state_version
+      - final
+      - orders
+      - inventory
+      - running_tasks
+      - stations
+      - revenue_minor
+      - previous_results
+      - previous_wake_result
+      - pending_wake_at_ms
+      additionalProperties: false
+    StartAction:
+      type: object
+      properties:
+        type:
+          const: start
+        action_id:
+          $ref: '#/components/schemas/Id'
+        recipe_id:
+          $ref: '#/components/schemas/Id'
+        station_id:
+          $ref: '#/components/schemas/Id'
+        batches:
+          $ref: '#/components/schemas/PositiveInt'
+        input_lots:
+          type: array
+          items:
+            $ref: '#/components/schemas/LotQty'
+          minItems: 0
+          maxItems: 1024
+      required:
+      - type
+      - action_id
+      - recipe_id
+      - station_id
+      - batches
+      - input_lots
+      additionalProperties: false
+    DeliverAction:
+      type: object
+      properties:
+        type:
+          const: deliver
+        action_id:
+          $ref: '#/components/schemas/Id'
+        order_id:
+          $ref: '#/components/schemas/Id'
+        output_lots:
+          type: array
+          items:
+            $ref: '#/components/schemas/LotQty'
+          minItems: 1
+          maxItems: 1024
+      required:
+      - type
+      - action_id
+      - order_id
+      - output_lots
+      additionalProperties: false
+    Action:
+      oneOf:
+      - $ref: '#/components/schemas/StartAction'
+      - $ref: '#/components/schemas/DeliverAction'
+    Init:
+      type: object
+      properties:
+        type:
+          const: init
+        protocol_version:
+          const: 0.2.0
+        request_id:
+          $ref: '#/components/schemas/Id'
+        run_token:
+          $ref: '#/components/schemas/Id'
+        policy_seed:
+          type: integer
+          minimum: 0
+          maximum: 4294967295
+        config:
+          $ref: '#/components/schemas/PublicScenario'
+      required:
+      - type
+      - protocol_version
+      - request_id
+      - run_token
+      - policy_seed
+      - config
+      additionalProperties: false
+    Ready:
+      type: object
+      properties:
+        type:
+          const: ready
+        protocol_version:
+          const: 0.2.0
+        request_id:
+          $ref: '#/components/schemas/Id'
+      required:
+      - type
+      - protocol_version
+      - request_id
+      additionalProperties: false
+    Observe:
+      type: object
+      properties:
+        type:
+          const: observe
+        request_id:
+          $ref: '#/components/schemas/Id'
+        observation:
+          $ref: '#/components/schemas/Observation'
+      required:
+      - type
+      - request_id
+      - observation
+      additionalProperties: false
+    Decision:
+      type: object
+      properties:
+        type:
+          const: decision
+        request_id:
+          $ref: '#/components/schemas/Id'
+        observed_version:
+          $ref: '#/components/schemas/UInt'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+          minItems: 0
+          maxItems: 1024
+        wake_at_ms:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+      required:
+      - type
+      - request_id
+      - observed_version
+      - actions
+      - wake_at_ms
+      additionalProperties: false
+    EndResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - completed
+          - candidate_failed
+          - infra_failed
+          - canceled
+          - disqualified
+        score_minor:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+        revenue_minor:
+          $ref: '#/components/schemas/UInt'
+        delivered_orders:
+          $ref: '#/components/schemas/UInt'
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+        final_action_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResult'
+          minItems: 0
+        final_wake_result:
+          anyOf:
+          - $ref: '#/components/schemas/WakeResult'
+          - type: 'null'
+      required:
+      - status
+      - score_minor
+      - revenue_minor
+      - delivered_orders
+      - failure_code
+      - final_action_results
+      - final_wake_result
+      additionalProperties: false
+    End:
+      type: object
+      properties:
+        type:
+          const: end
+        result:
+          $ref: '#/components/schemas/EndResult'
+      required:
+      - type
+      - result
+      additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+          maxLength: 256
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+          maxLength: 2048
+        instance:
+          type: string
+          maxLength: 256
+        code:
+          type: string
+          maxLength: 128
+        trace_id:
+          $ref: '#/components/schemas/Id'
+      required:
+      - type
+      - title
+      - status
+      - code
+      - trace_id
+      additionalProperties: false
+    Artifact:
+      type: object
+      properties:
+        artifact_id:
+          $ref: '#/components/schemas/Id'
+        sha256:
+          $ref: '#/components/schemas/Hash'
+        size_bytes:
+          $ref: '#/components/schemas/UInt'
+        status:
+          type: string
+          enum:
+          - quarantined
+          - ready
+          - rejected
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - artifact_id
+      - sha256
+      - size_bytes
+      - status
+      - created_at
+      additionalProperties: false
+    SubmissionCreate:
+      type: object
+      properties:
+        artifact_id:
+          $ref: '#/components/schemas/Id'
+        model_config_id:
+          $ref: '#/components/schemas/Id'
+        label:
+          type: string
+          maxLength: 128
+      required:
+      - artifact_id
+      - model_config_id
+      - label
+      additionalProperties: false
+      example:
+        artifact_id: artifact1
+        model_config_id: model1
+        label: generation-1
+    Submission:
+      type: object
+      properties:
+        submission_id:
+          $ref: '#/components/schemas/Id'
+        artifact_id:
+          $ref: '#/components/schemas/Id'
+        model_config_id:
+          $ref: '#/components/schemas/Id'
+        label:
+          type: string
+          maxLength: 128
+        status:
+          type: string
+          enum:
+          - validating
+          - ready
+          - frozen
+          - rejected
+        source_sha256:
+          $ref: '#/components/schemas/Hash'
+        runtime_image_digest:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
+        entrypoint:
+          type: array
+          items:
+            type: string
+            maxLength: 256
+          minItems: 1
+          maxItems: 16
+        language:
+          type: string
+          enum:
+          - python
+          - typescript
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - submission_id
+      - artifact_id
+      - model_config_id
+      - label
+      - status
+      - source_sha256
+      - runtime_image_digest
+      - created_at
+      additionalProperties: false
+    Benchmark:
+      type: object
+      properties:
+        benchmark_id:
+          $ref: '#/components/schemas/Id'
+        title:
+          type: string
+          maxLength: 128
+        protocol_version:
+          const: 0.2.0
+        status:
+          type: string
+          enum:
+          - published
+          - retired
+        difficulties:
+          type: array
+          items:
+            type: string
+            enum:
+            - easy
+            - medium
+            - complex
+          minItems: 1
+          maxItems: 3
+        public_scenario_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/Id'
+          minItems: 0
+        manifest_sha256:
+          $ref: '#/components/schemas/Hash'
+      required:
+      - benchmark_id
+      - title
+      - protocol_version
+      - status
+      - difficulties
+      - public_scenario_ids
+      - manifest_sha256
+      additionalProperties: false
+    PracticeCreate:
+      type: object
+      properties:
+        submission_id:
+          $ref: '#/components/schemas/Id'
+        scenario_id:
+          $ref: '#/components/schemas/Id'
+        public_case_id:
+          $ref: '#/components/schemas/Id'
+      required:
+      - submission_id
+      - scenario_id
+      - public_case_id
+      additionalProperties: false
+      example:
+        submission_id: sub1
+        scenario_id: mechanical-smoke
+        public_case_id: practice1
+    EvaluationCreate:
+      type: object
+      properties:
+        benchmark_id:
+          $ref: '#/components/schemas/Id'
+        submission_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/Id'
+          minItems: 1
+          maxItems: 100
+      required:
+      - benchmark_id
+      - submission_ids
+      additionalProperties: false
+      example:
+        benchmark_id: bench-0.2-preview
+        submission_ids:
+        - sub1
+        - sub2
+    Evaluation:
+      type: object
+      properties:
+        evaluation_id:
+          $ref: '#/components/schemas/Id'
+        benchmark_id:
+          $ref: '#/components/schemas/Id'
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - complete
+          - blocked
+        total_runs:
+          $ref: '#/components/schemas/UInt'
+        resolved_runs:
+          $ref: '#/components/schemas/UInt'
+        candidate_failed_runs:
+          $ref: '#/components/schemas/UInt'
+        unresolved_infra_runs:
+          $ref: '#/components/schemas/UInt'
+        matrix_sha256:
+          $ref: '#/components/schemas/Hash'
+      required:
+      - evaluation_id
+      - benchmark_id
+      - status
+      - total_runs
+      - resolved_runs
+      - candidate_failed_runs
+      - unresolved_infra_runs
+      - matrix_sha256
+      additionalProperties: false
+    Run:
+      type: object
+      properties:
+        run_id:
+          $ref: '#/components/schemas/Id'
+        submission_id:
+          $ref: '#/components/schemas/Id'
+        mode:
+          type: string
+          enum:
+          - practice
+          - official
+          - demo
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - completed
+          - candidate_failed
+          - infra_failed
+          - canceled
+          - disqualified
+        difficulty:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+        score_minor:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+        revenue_minor:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+        delivered_orders:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+        replay_released:
+          type: boolean
+        accepted_attempt_id:
+          anyOf:
+          - $ref: '#/components/schemas/Id'
+          - type: 'null'
+        resource_metrics:
+          anyOf:
+          - $ref: '#/components/schemas/ResourceMetrics'
+          - type: 'null'
+      required:
+      - run_id
+      - submission_id
+      - mode
+      - status
+      - difficulty
+      - score_minor
+      - revenue_minor
+      - delivered_orders
+      - failure_code
+      - replay_released
+      - accepted_attempt_id
+      additionalProperties: false
+    Delivery:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        order_id:
+          $ref: '#/components/schemas/Id'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        output_lots:
+          type: array
+          items:
+            $ref: '#/components/schemas/LotQty'
+          minItems: 1
+        value_minor:
+          $ref: '#/components/schemas/UInt'
+      required:
+      - id
+      - order_id
+      - at_ms
+      - output_lots
+      - value_minor
+      additionalProperties: false
+    ReplayState:
+      type: object
+      properties:
+        now_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          minItems: 0
+        inventory:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lot'
+          minItems: 0
+        running_tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+          minItems: 0
+        stations:
+          type: array
+          items:
+            $ref: '#/components/schemas/StationState'
+          minItems: 0
+        revenue_minor:
+          $ref: '#/components/schemas/UInt'
+        delivered_orders:
+          $ref: '#/components/schemas/UInt'
+        pending_wake_at_ms:
+          anyOf:
+          - $ref: '#/components/schemas/UInt'
+          - type: 'null'
+      required:
+      - now_ms
+      - state_version
+      - orders
+      - inventory
+      - running_tasks
+      - stations
+      - revenue_minor
+      - delivered_orders
+      - pending_wake_at_ms
+      additionalProperties: false
+    EventClockAdvanced:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: clock_advanced
+        payload:
+          type: object
+          properties:
+            from_ms:
+              $ref: '#/components/schemas/UInt'
+            to_ms:
+              $ref: '#/components/schemas/UInt'
+          required:
+          - from_ms
+          - to_ms
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventTaskStarted:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: task_started
+        payload:
+          type: object
+          properties:
+            task:
+              $ref: '#/components/schemas/Task'
+            consumed_lots:
+              type: array
+              items:
+                $ref: '#/components/schemas/LotQty'
+              minItems: 0
+            raw_consumed:
+              type: array
+              items:
+                $ref: '#/components/schemas/ItemQty'
+              minItems: 0
+          required:
+          - task
+          - consumed_lots
+          - raw_consumed
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventTaskCompleted:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: task_completed
+        payload:
+          type: object
+          properties:
+            task_id:
+              $ref: '#/components/schemas/Id'
+            station_id:
+              $ref: '#/components/schemas/Id'
+            created_lots:
+              type: array
+              items:
+                $ref: '#/components/schemas/Lot'
+              minItems: 1
+          required:
+          - task_id
+          - station_id
+          - created_lots
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventOrderArrived:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: order_arrived
+        payload:
+          type: object
+          properties:
+            order:
+              $ref: '#/components/schemas/Order'
+          required:
+          - order
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventOrderDelivered:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: order_delivered
+        payload:
+          type: object
+          properties:
+            delivery:
+              $ref: '#/components/schemas/Delivery'
+          required:
+          - delivery
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventActionRejected:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: action_rejected
+        payload:
+          type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/ActionResult'
+          required:
+          - result
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventWakeUpdated:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: wake_updated
+        payload:
+          type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/WakeResult'
+          required:
+          - result
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventRunFinished:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: run_finished
+        payload:
+          type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/EndResult'
+          required:
+          - result
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    EventRecord:
+      oneOf:
+      - $ref: '#/components/schemas/EventClockAdvanced'
+      - $ref: '#/components/schemas/EventTaskStarted'
+      - $ref: '#/components/schemas/EventTaskCompleted'
+      - $ref: '#/components/schemas/EventOrderArrived'
+      - $ref: '#/components/schemas/EventOrderDelivered'
+      - $ref: '#/components/schemas/EventActionRejected'
+      - $ref: '#/components/schemas/EventWakeUpdated'
+      - $ref: '#/components/schemas/EventRunFinished'
+      - $ref: '#/components/schemas/EventWakeFired'
+    EventPage:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventRecord'
+          minItems: 0
+          maxItems: 1000
+        next_after_seq:
+          $ref: '#/components/schemas/UInt'
+        has_more:
+          type: boolean
+      required:
+      - events
+      - next_after_seq
+      - has_more
+      additionalProperties: false
+    Checkpoint:
+      type: object
+      properties:
+        checkpoint_seq:
+          $ref: '#/components/schemas/UInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state:
+          $ref: '#/components/schemas/ReplayState'
+        state_hash:
+          $ref: '#/components/schemas/Hash'
+      required:
+      - checkpoint_seq
+      - at_ms
+      - state
+      - state_hash
+      additionalProperties: false
+    ReplayManifest:
+      type: object
+      properties:
+        run_id:
+          $ref: '#/components/schemas/Id'
+        protocol_version:
+          const: 0.2.0
+        end_at_ms:
+          $ref: '#/components/schemas/UInt'
+        event_count:
+          $ref: '#/components/schemas/UInt'
+        events_sha256:
+          $ref: '#/components/schemas/Hash'
+        checkpoints_sha256:
+          $ref: '#/components/schemas/Hash'
+        config:
+          $ref: '#/components/schemas/PublicScenario'
+        released:
+          type: boolean
+      required:
+      - run_id
+      - protocol_version
+      - end_at_ms
+      - event_count
+      - events_sha256
+      - checkpoints_sha256
+      - config
+      - released
+      additionalProperties: false
+    LeaderboardRow:
+      type: object
+      properties:
+        rank:
+          $ref: '#/components/schemas/PositiveInt'
+        model_config_id:
+          $ref: '#/components/schemas/Id'
+        mean_score_minor:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        generation_count:
+          $ref: '#/components/schemas/PositiveInt'
+        run_count:
+          $ref: '#/components/schemas/PositiveInt'
+        candidate_failed_count:
+          $ref: '#/components/schemas/UInt'
+        success_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        interval_low_minor:
+          anyOf:
+          - type: number
+            minimum: 0
+          - type: 'null'
+        interval_high_minor:
+          anyOf:
+          - type: number
+            minimum: 0
+          - type: 'null'
+      required:
+      - rank
+      - model_config_id
+      - mean_score_minor
+      - generation_count
+      - run_count
+      - candidate_failed_count
+      - success_rate
+      - interval_low_minor
+      - interval_high_minor
+      additionalProperties: false
+    Leaderboard:
+      type: object
+      properties:
+        benchmark_id:
+          $ref: '#/components/schemas/Id'
+        snapshot_id:
+          $ref: '#/components/schemas/Id'
+        difficulty:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardRow'
+          minItems: 0
+        next_cursor:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+        matrix_sha256:
+          $ref: '#/components/schemas/Hash'
+        aggregation_version:
+          type: string
+          maxLength: 64
+      required:
+      - benchmark_id
+      - snapshot_id
+      - difficulty
+      - rows
+      - next_cursor
+      - matrix_sha256
+      - aggregation_version
+      additionalProperties: false
+    PublishCreate:
+      type: object
+      properties:
+        evaluation_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/Id'
+          minItems: 1
+          maxItems: 100
+        expected_matrix_sha256:
+          $ref: '#/components/schemas/Hash'
+      required:
+      - evaluation_ids
+      - expected_matrix_sha256
+      additionalProperties: false
+    PublishResult:
+      type: object
+      properties:
+        benchmark_id:
+          $ref: '#/components/schemas/Id'
+        snapshot_id:
+          $ref: '#/components/schemas/Id'
+        status:
+          const: published
+        matrix_sha256:
+          $ref: '#/components/schemas/Hash'
+      required:
+      - benchmark_id
+      - snapshot_id
+      - status
+      - matrix_sha256
+      additionalProperties: false
+    CancelRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+      required:
+      - reason
+      additionalProperties: false
+    BenchmarkPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Benchmark'
+          minItems: 0
+        next_cursor:
+          anyOf:
+          - type: string
+            maxLength: 2048
+          - type: 'null'
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    Health:
+      type: object
+      properties:
+        status:
+          const: ok
+      required:
+      - status
+      additionalProperties: false
+    EventWakeFired:
+      type: object
+      properties:
+        seq:
+          $ref: '#/components/schemas/PositiveInt'
+        at_ms:
+          $ref: '#/components/schemas/UInt'
+        state_version:
+          $ref: '#/components/schemas/UInt'
+        type:
+          const: wake_fired
+        payload:
+          type: object
+          properties:
+            scheduled_at_ms:
+              $ref: '#/components/schemas/UInt'
+          required:
+          - scheduled_at_ms
+          additionalProperties: false
+      required:
+      - seq
+      - at_ms
+      - state_version
+      - type
+      - payload
+      additionalProperties: false
+    ResourceMetrics:
+      type: object
+      properties:
+        cpu_ms:
+          $ref: '#/components/schemas/UInt'
+        wall_ms:
+          $ref: '#/components/schemas/UInt'
+        peak_memory_bytes:
+          $ref: '#/components/schemas/UInt'
+        decision_count:
+          $ref: '#/components/schemas/UInt'
+        action_count:
+          $ref: '#/components/schemas/UInt'
+        invalid_action_count:
+          $ref: '#/components/schemas/UInt'
+      required:
+      - cpu_ms
+      - wall_ms
+      - peak_memory_bytes
+      - decision_count
+      - action_count
+      - invalid_action_count
+      additionalProperties: false
+    ConnectionCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+        endpoint_url:
+          type: string
+          format: uri
+          pattern: ^https://
+          maxLength: 2048
+          description: Public HTTPS endpoint. Schema is not an SSRF defense. Reject userinfo, fragments, credential
+            query strings and unsafe addresses at egress.
+        api_format:
+          type: string
+          enum:
+          - openai_compatible
+          - anthropic_compatible
+        api_key:
+          type: string
+          minLength: 1
+          maxLength: 8192
+          writeOnly: true
+          description: Write only; secret store only. Never return, log, or copy into candidate environment.
+        credential_retention:
+          type: string
+          enum:
+          - single_experiment
+          - saved
+      required:
+      - label
+      - endpoint_url
+      - api_format
+      - api_key
+      - credential_retention
+    Connection:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &id001
+          $ref: '#/components/schemas/Id'
+        label:
+          type: string
+        endpoint_origin:
+          type: string
+          format: uri
+        api_format:
+          type: string
+          enum:
+          - openai_compatible
+          - anthropic_compatible
+        credential_present: &id003
+          type: boolean
+        credential_retention:
+          type: string
+          enum:
+          - single_experiment
+          - saved
+        status:
+          type: string
+          enum:
+          - unverified
+          - ready
+          - failed
+          - revoked
+          - expired
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - label
+      - endpoint_origin
+      - api_format
+      - credential_present
+      - credential_retention
+      - status
+      - created_at
+    ConnectionProbeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        model_id:
+          type: string
+          minLength: 1
+          maxLength: 256
+      required:
+      - model_id
+    ConnectionProbeResult:
+      type: object
+      additionalProperties: false
+      properties:
+        connection_id: *id001
+        status:
+          type: string
+          enum:
+          - compatible
+          - incompatible
+          - unreachable
+        model_identity_verified:
+          const: false
+        diagnostic_code:
+          type: string
+        estimated_cost_minor:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+      required:
+      - connection_id
+      - status
+      - model_identity_verified
+      - diagnostic_code
+      - estimated_cost_minor
+      description: Connectivity and protocol smoke test only; may incur model-provider usage. It does not authenticate
+        model identity.
+    ExperimentCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        connection_id: *id001
+        model_id:
+          type: string
+          minLength: 1
+          maxLength: 256
+        benchmark_id: *id001
+        methodology_id: *id001
+        label:
+          type: string
+          maxLength: 160
+        parent_experiment_id:
+          anyOf:
+          - *id001
+          - &id002
+            type: 'null'
+      required:
+      - connection_id
+      - model_id
+      - benchmark_id
+      - methodology_id
+      - label
+      description: Methodology determines fixed prompt, repetitions and budgets. No prompt override, hidden case
+        IDs, or owner override accepted. Snapshot endpoint/model/methodology at creation.
+    Experiment:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        label:
+          type: string
+        model_id_declared:
+          type: string
+        connection_id: *id001
+        benchmark_id: *id001
+        methodology_id: *id001
+        methodology_sha256: &id004
+          $ref: '#/components/schemas/Hash'
+        state:
+          type: string
+          enum:
+          - queued
+          - generating
+          - freezing
+          - evaluating
+          - aggregating
+          - completed
+          - generation_failed
+          - infra_failed
+          - canceled
+          - disqualified
+        planned_generations:
+          type: integer
+          minimum: 1
+        finished_generations:
+          type: integer
+          minimum: 0
+        planned_runs:
+          type: integer
+          minimum: 0
+        finished_runs:
+          type: integer
+          minimum: 0
+        result_id:
+          anyOf:
+          - *id001
+          - *id002
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - label
+      - model_id_declared
+      - connection_id
+      - benchmark_id
+      - methodology_id
+      - methodology_sha256
+      - state
+      - planned_generations
+      - finished_generations
+      - planned_runs
+      - finished_runs
+      - result_id
+      - created_at
+    CurrentUser:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        display_name:
+          type: string
+        role:
+          type: string
+          enum:
+          - submitter
+          - organizer
+        auth_provider:
+          type: string
+          enum:
+          - bootstrap
+          - github
+      required:
+      - id
+      - display_name
+      - role
+      - auth_provider
+    CollectionCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          maxLength: 4000
+      required:
+      - title
+      - description
+    CollectionItemCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        result_id: *id001
+      required:
+      - result_id
+    Collection:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        title:
+          type: string
+        description:
+          type: string
+        result_ids:
+          type: array
+          items: *id001
+          maxItems: 200
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - title
+      - description
+      - result_ids
+      - created_at
+      description: References authorized immutable result records; does not grant access to hidden artifacts.
+    ShareCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        resource_type:
+          type: string
+          enum:
+          - result
+          - collection
+        resource_id: *id001
+        include_source: *id003
+      required:
+      - resource_type
+      - resource_id
+      - include_source
+      description: No log, secret or active hidden replay scopes. include_source requires independent source-visibility
+        authorization.
+    ShareCreated:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        resource_type:
+          type: string
+          enum:
+          - result
+          - collection
+        resource_id: *id001
+        share_path:
+          type: string
+          pattern: ^/s/[A-Za-z0-9_-]+$
+          description: High-entropy secret URL path; returned on creation only. Do not log or expose through generic
+            listings.
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - resource_type
+      - resource_id
+      - share_path
+      - created_at
+    MethodologyBudgets:
+      type: object
+      additionalProperties: false
+      properties:
+        generation_wall_ms:
+          type: integer
+          minimum: 1
+        max_model_calls:
+          type: integer
+          minimum: 1
+        max_output_tokens_per_call:
+          type: integer
+          minimum: 1
+        generation_repetitions:
+          type: integer
+          minimum: 1
+        candidate_runtime_image_digest:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+        generation_image_digest:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+      required:
+      - generation_wall_ms
+      - max_model_calls
+      - max_output_tokens_per_call
+      - generation_repetitions
+      - candidate_runtime_image_digest
+      - generation_image_digest
+    MethodologyPublic:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        status:
+          const: published
+        methodology_sha256: *id004
+        system_prompt:
+          type: string
+        task_prompt:
+          type: string
+        tool_schema_text:
+          type: string
+          description: Canonical JSON text of complete effective tool definitions, not just their names.
+        tool_schema_sha256: *id004
+        public_bundle_sha256: *id004
+        harness_name:
+          type: string
+        harness_commit:
+          type: string
+        adapter_version:
+          type: string
+        context_policy:
+          type: string
+        retry_policy:
+          type: string
+        budgets:
+          $ref: '#/components/schemas/MethodologyBudgets'
+      required:
+      - id
+      - status
+      - methodology_sha256
+      - system_prompt
+      - task_prompt
+      - tool_schema_text
+      - tool_schema_sha256
+      - public_bundle_sha256
+      - harness_name
+      - harness_commit
+      - adapter_version
+      - context_policy
+      - retry_policy
+      - budgets
+      description: Effective platform-controlled input manifest. No provider credentials or private traces. Different
+        transport formats are disclosed, not falsely claimed byte-identical.
+    TierScorePublic:
+      type: object
+      additionalProperties: false
+      properties:
+        difficulty:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+        mean_revenue_minor:
+          type: number
+          minimum: 0
+        independent_generations:
+          type: integer
+          minimum: 1
+        completed_runs:
+          type: integer
+          minimum: 0
+        candidate_failed_runs:
+          type: integer
+          minimum: 0
+        unit:
+          const: game_currency_minor
+      required:
+      - difficulty
+      - mean_revenue_minor
+      - independent_generations
+      - completed_runs
+      - candidate_failed_runs
+      - unit
+    PublicResult:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        label:
+          type: string
+        benchmark_id: *id001
+        methodology_id: *id001
+        model_id_declared:
+          type: string
+        model_source:
+          type: string
+          enum:
+          - platform_controlled
+          - user_endpoint
+          - imported
+        execution_verification:
+          type: string
+          enum:
+          - platform_verified
+          - imported_unverified
+        official_eligible: *id003
+        scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/TierScorePublic'
+          minItems: 1
+          maxItems: 3
+        source_sha256s:
+          type: array
+          items: *id004
+        demo_replay_ids:
+          type: array
+          items: *id001
+        usage_cost_status:
+          type: string
+          enum:
+          - reported
+          - estimated
+          - unknown
+      required:
+      - id
+      - label
+      - benchmark_id
+      - methodology_id
+      - model_id_declared
+      - model_source
+      - execution_verification
+      - official_eligible
+      - scores
+      - source_sha256s
+      - demo_replay_ids
+      - usage_cost_status
+      description: Public white-list projection only. No keys, endpoint paths, raw messages, hidden case IDs or
+        hidden events. Incomplete infra-failed matrices cannot produce a standard published result.
+    PublicShare:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicResult'
+          maxItems: 200
+      required:
+      - title
+      - results
+      description: Only an authorized revocable share can resolve private results. Cache policy must respect revocation.
+    GameCatalogEntry:
+      type: object
+      additionalProperties: false
+      properties:
+        scenario_id: *id001
+        title:
+          type: string
+        difficulty:
+          type: string
+          enum:
+          - easy
+          - medium
+          - complex
+        engine_version:
+          type: string
+        scenario_hash: *id004
+        config_path:
+          type: string
+        default_clock_mode:
+          const: human_realtime
+      required:
+      - scenario_id
+      - title
+      - difficulty
+      - engine_version
+      - scenario_hash
+      - config_path
+      - default_clock_mode
+    ConnectionPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor
+    ExperimentPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Experiment'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor
+    CollectionPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collection'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor
+    GameCatalogEntryPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GameCatalogEntry'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor

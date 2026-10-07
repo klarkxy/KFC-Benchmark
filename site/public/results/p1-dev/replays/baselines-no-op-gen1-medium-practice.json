@@ -1,0 +1,746 @@
+{
+  "header": {
+    "replay_schema_version": "1",
+    "engine_version": "core/0.3.0",
+    "protocol_version": "0.3.0-web",
+    "benchmark_version": "p1-dev",
+    "scenario_id": "medium-01",
+    "scenario_hash": "e4071ff30c4fa9f07bf890a6b5481e594983fc15a4cb7583f8483be632cdc6e2",
+    "clock_mode": "paused_code",
+    "replay_kind": "practice",
+    "order_stream": {
+      "visibility": "public",
+      "generator_version": "scen/0.3.0",
+      "seed": 20261007
+    }
+  },
+  "events": [
+    {
+      "seq": 1,
+      "at_ms": 60000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 0,
+        "to_ms": 60000
+      },
+      "state_version": 1
+    },
+    {
+      "seq": 2,
+      "at_ms": 60000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o1",
+          "arrived_at_ms": 60000,
+          "items": [
+            {
+              "item_id": "p.fries",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.burger_double",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.meal_wrap",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 1
+            }
+          ],
+          "value_minor": 10590
+        }
+      },
+      "state_version": 2
+    },
+    {
+      "seq": 3,
+      "at_ms": 72000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 60000,
+        "to_ms": 72000
+      },
+      "state_version": 3
+    },
+    {
+      "seq": 4,
+      "at_ms": 72000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o2",
+          "arrived_at_ms": 72000,
+          "items": [
+            {
+              "item_id": "p.burger_double",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 10410
+        }
+      },
+      "state_version": 4
+    },
+    {
+      "seq": 5,
+      "at_ms": 84000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 72000,
+        "to_ms": 84000
+      },
+      "state_version": 5
+    },
+    {
+      "seq": 6,
+      "at_ms": 84000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o3",
+          "arrived_at_ms": 84000,
+          "items": [
+            {
+              "item_id": "p.wrap_double",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 8850
+        }
+      },
+      "state_version": 6
+    },
+    {
+      "seq": 7,
+      "at_ms": 96000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 84000,
+        "to_ms": 96000
+      },
+      "state_version": 7
+    },
+    {
+      "seq": 8,
+      "at_ms": 96000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o4",
+          "arrived_at_ms": 96000,
+          "items": [
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.burger_double",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 9930
+        }
+      },
+      "state_version": 8
+    },
+    {
+      "seq": 9,
+      "at_ms": 108000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 96000,
+        "to_ms": 108000
+      },
+      "state_version": 9
+    },
+    {
+      "seq": 10,
+      "at_ms": 108000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o5",
+          "arrived_at_ms": 108000,
+          "items": [
+            {
+              "item_id": "p.burger_double",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 8350
+        }
+      },
+      "state_version": 10
+    },
+    {
+      "seq": 11,
+      "at_ms": 120000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 108000,
+        "to_ms": 120000
+      },
+      "state_version": 11
+    },
+    {
+      "seq": 12,
+      "at_ms": 120000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o6",
+          "arrived_at_ms": 120000,
+          "items": [
+            {
+              "item_id": "p.wrap_double",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 4960
+        }
+      },
+      "state_version": 12
+    },
+    {
+      "seq": 13,
+      "at_ms": 132000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 120000,
+        "to_ms": 132000
+      },
+      "state_version": 13
+    },
+    {
+      "seq": 14,
+      "at_ms": 132000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o7",
+          "arrived_at_ms": 132000,
+          "items": [
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 2300
+        }
+      },
+      "state_version": 14
+    },
+    {
+      "seq": 15,
+      "at_ms": 144000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 132000,
+        "to_ms": 144000
+      },
+      "state_version": 15
+    },
+    {
+      "seq": 16,
+      "at_ms": 144000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o8",
+          "arrived_at_ms": 144000,
+          "items": [
+            {
+              "item_id": "p.meal_wrap",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.wrap_double",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 12480
+        }
+      },
+      "state_version": 16
+    },
+    {
+      "seq": 17,
+      "at_ms": 156000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 144000,
+        "to_ms": 156000
+      },
+      "state_version": 17
+    },
+    {
+      "seq": 18,
+      "at_ms": 156000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o9",
+          "arrived_at_ms": 156000,
+          "items": [
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 7670
+        }
+      },
+      "state_version": 18
+    },
+    {
+      "seq": 19,
+      "at_ms": 168000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 156000,
+        "to_ms": 168000
+      },
+      "state_version": 19
+    },
+    {
+      "seq": 20,
+      "at_ms": 168000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o10",
+          "arrived_at_ms": 168000,
+          "items": [
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 1980
+        }
+      },
+      "state_version": 20
+    },
+    {
+      "seq": 21,
+      "at_ms": 180000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 168000,
+        "to_ms": 180000
+      },
+      "state_version": 21
+    },
+    {
+      "seq": 22,
+      "at_ms": 180000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o11",
+          "arrived_at_ms": 180000,
+          "items": [
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 3290
+        }
+      },
+      "state_version": 22
+    },
+    {
+      "seq": 23,
+      "at_ms": 192000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 180000,
+        "to_ms": 192000
+      },
+      "state_version": 23
+    },
+    {
+      "seq": 24,
+      "at_ms": 192000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o12",
+          "arrived_at_ms": 192000,
+          "items": [
+            {
+              "item_id": "p.burger_double",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 10880
+        }
+      },
+      "state_version": 24
+    },
+    {
+      "seq": 25,
+      "at_ms": 204000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 192000,
+        "to_ms": 204000
+      },
+      "state_version": 25
+    },
+    {
+      "seq": 26,
+      "at_ms": 204000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o13",
+          "arrived_at_ms": 204000,
+          "items": [
+            {
+              "item_id": "p.burger_double",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.wrap_double",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 10680
+        }
+      },
+      "state_version": 26
+    },
+    {
+      "seq": 27,
+      "at_ms": 216000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 204000,
+        "to_ms": 216000
+      },
+      "state_version": 27
+    },
+    {
+      "seq": 28,
+      "at_ms": 216000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o14",
+          "arrived_at_ms": 216000,
+          "items": [
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 3
+            },
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 5430
+        }
+      },
+      "state_version": 28
+    },
+    {
+      "seq": 29,
+      "at_ms": 228000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 216000,
+        "to_ms": 228000
+      },
+      "state_version": 29
+    },
+    {
+      "seq": 30,
+      "at_ms": 228000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o15",
+          "arrived_at_ms": 228000,
+          "items": [
+            {
+              "item_id": "p.meal_wrap",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.burger_double",
+              "quantity": 1
+            }
+          ],
+          "value_minor": 7830
+        }
+      },
+      "state_version": 30
+    },
+    {
+      "seq": 31,
+      "at_ms": 240000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 228000,
+        "to_ms": 240000
+      },
+      "state_version": 31
+    },
+    {
+      "seq": 32,
+      "at_ms": 240000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o16",
+          "arrived_at_ms": 240000,
+          "items": [
+            {
+              "item_id": "p.burger_double",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.burger_classic",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 6640
+        }
+      },
+      "state_version": 32
+    },
+    {
+      "seq": 33,
+      "at_ms": 252000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 240000,
+        "to_ms": 252000
+      },
+      "state_version": 33
+    },
+    {
+      "seq": 34,
+      "at_ms": 252000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o17",
+          "arrived_at_ms": 252000,
+          "items": [
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 1
+            },
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.fries",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.wrap_double",
+              "quantity": 3
+            }
+          ],
+          "value_minor": 10800
+        }
+      },
+      "state_version": 34
+    },
+    {
+      "seq": 35,
+      "at_ms": 264000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 252000,
+        "to_ms": 264000
+      },
+      "state_version": 35
+    },
+    {
+      "seq": 36,
+      "at_ms": 264000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o18",
+          "arrived_at_ms": 264000,
+          "items": [
+            {
+              "item_id": "p.meal_wrap",
+              "quantity": 2
+            },
+            {
+              "item_id": "p.meal_burger",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 8520
+        }
+      },
+      "state_version": 36
+    },
+    {
+      "seq": 37,
+      "at_ms": 276000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 264000,
+        "to_ms": 276000
+      },
+      "state_version": 37
+    },
+    {
+      "seq": 38,
+      "at_ms": 276000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o19",
+          "arrived_at_ms": 276000,
+          "items": [
+            {
+              "item_id": "p.burger_trio",
+              "quantity": 2
+            }
+          ],
+          "value_minor": 4380
+        }
+      },
+      "state_version": 38
+    },
+    {
+      "seq": 39,
+      "at_ms": 288000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 276000,
+        "to_ms": 288000
+      },
+      "state_version": 39
+    },
+    {
+      "seq": 40,
+      "at_ms": 288000,
+      "type": "order_arrived",
+      "payload": {
+        "order": {
+          "id": "o20",
+          "arrived_at_ms": 288000,
+          "items": [
+            {
+              "item_id": "p.wrap_classic",
+              "quantity": 3
+            }
+          ],
+          "value_minor": 2970
+        }
+      },
+      "state_version": 40
+    },
+    {
+      "seq": 41,
+      "at_ms": 300000,
+      "type": "clock_advanced",
+      "payload": {
+        "from_ms": 288000,
+        "to_ms": 300000
+      },
+      "state_version": 41
+    },
+    {
+      "seq": 42,
+      "at_ms": 300000,
+      "type": "run_finished",
+      "payload": {
+        "status": "completed",
+        "score_minor": 0,
+        "revenue_minor": 0,
+        "delivered_orders": 0,
+        "state_hash": "7b5be638a1730ffeee6d6678d7dd45cf39534072d5e803194544606673777766"
+      },
+      "state_version": 41
+    }
+  ]
+}

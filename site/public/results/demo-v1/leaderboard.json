@@ -1,0 +1,116 @@
+{
+  "benchmark_version": "demo-v1",
+  "generated_at_iso": "2026-10-05T12:05:00.000Z",
+  "engine_version": "0.3.0",
+  "protocol_version": "0.3.0-web",
+  "rows": [
+    {
+      "submission": {
+        "submission_id": "sub-baseline-greedy-1",
+        "model_label": "baseline/greedy",
+        "generation": 1,
+        "source_sha256": "30d048a14d384fe5af132b26daab99e89b3cf82316aa317008aec69edb138f2a"
+      },
+      "difficulty": "easy",
+      "cases": 2,
+      "completed": 2,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "run_ids": [
+        "demo-easy-greedy-c1",
+        "demo-easy-greedy-c2"
+      ],
+      "mean_score_minor": 10450
+    },
+    {
+      "submission": {
+        "submission_id": "sub-kimi-k3-1",
+        "model_label": "kimi-k3",
+        "generation": 1,
+        "source_sha256": "e094a486937971cd470aa7c0f02322d4a17fdcfc67aca2a6b34f02514c8206d1"
+      },
+      "difficulty": "easy",
+      "cases": 2,
+      "completed": 1,
+      "candidate_failed": 1,
+      "infra_failed": 0,
+      "run_ids": [
+        "demo-easy-kimi-c1",
+        "demo-easy-kimi-c2"
+      ],
+      "mean_score_minor": 3400
+    },
+    {
+      "submission": {
+        "submission_id": "sub-kimi-k3-2",
+        "model_label": "kimi-k3",
+        "generation": 2,
+        "source_sha256": "113709a5e5d618a5fc83192e58bec217d6ce313b638f13ca6b5b2cae2262557e"
+      },
+      "difficulty": "easy",
+      "cases": 2,
+      "completed": 2,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "run_ids": [
+        "demo-easy-kimi-c1",
+        "demo-easy-kimi-c2"
+      ],
+      "mean_score_minor": 10400
+    },
+    {
+      "submission": {
+        "submission_id": "sub-gpt-x-1",
+        "model_label": "gpt-x",
+        "generation": 1,
+        "source_sha256": "aa29a4dbfb199cac3ab1a825280f2aa95e2bfc645f8aad744fac3bedd69cbc80"
+      },
+      "difficulty": "medium",
+      "cases": 2,
+      "completed": 2,
+      "candidate_failed": 0,
+      "infra_failed": 0,
+      "run_ids": [
+        "demo-medium-gptx-c1",
+        "demo-medium-gptx-c2"
+      ],
+      "mean_score_minor": 16800
+    },
+    {
+      "submission": {
+        "submission_id": "sub-kimi-k3-3",
+        "model_label": "kimi-k3",
+        "generation": 1,
+        "source_sha256": "967a10b7a30695ec5c62a0aa8679502a82a1d3584a54c09ef387168ded9259ad"
+      },
+      "difficulty": "medium",
+      "cases": 2,
+      "completed": 1,
+      "candidate_failed": 1,
+      "infra_failed": 0,
+      "run_ids": [
+        "demo-medium-kimi-c1",
+        "demo-medium-kimi-c2"
+      ],
+      "mean_score_minor": 5650
+    },
+    {
+      "submission": {
+        "submission_id": "sub-gpt-x-2",
+        "model_label": "gpt-x",
+        "generation": 1,
+        "source_sha256": "53e82547274232ca94d57ad3fb941f183aa86077fe1e4a40143b2e81c84a7621"
+      },
+      "difficulty": "complex",
+      "cases": 2,
+      "completed": 1,
+      "candidate_failed": 0,
+      "infra_failed": 1,
+      "run_ids": [
+        "demo-complex-gptx-c1",
+        "demo-complex-gptx-c2"
+      ],
+      "mean_score_minor": null
+    }
+  ]
+}

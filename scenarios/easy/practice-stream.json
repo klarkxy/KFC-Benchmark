@@ -1,0 +1,229 @@
+{
+  "version": "1",
+  "scenario_id": "easy-01",
+  "seed": 20261007,
+  "generator_version": "scen/0.3.0",
+  "difficulty": "easy",
+  "orders": [
+    {
+      "at_ms": 60000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.combo_box",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 75000,
+      "items": [
+        {
+          "item_id": "p.combo_box",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.fries_box",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "at_ms": 90000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.combo_box",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 105000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries_box",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 120000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 135000,
+      "items": [
+        {
+          "item_id": "p.combo_box",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 150000,
+      "items": [
+        {
+          "item_id": "p.fries_box",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 165000,
+      "items": [
+        {
+          "item_id": "p.fries_box",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.combo_box",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 180000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries_box",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "at_ms": 195000,
+      "items": [
+        {
+          "item_id": "p.combo_box",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "at_ms": 210000,
+      "items": [
+        {
+          "item_id": "p.combo_box",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "at_ms": 225000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 240000,
+      "items": [
+        {
+          "item_id": "p.fries_box",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 255000,
+      "items": [
+        {
+          "item_id": "p.grilled_sandwich",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries_box",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 270000,
+      "items": [
+        {
+          "item_id": "p.crispy_sandwich",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.combo_box",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries_box",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "at_ms": 285000,
+      "items": [
+        {
+          "item_id": "p.combo_box",
+          "quantity": 2
+        }
+      ]
+    }
+  ]
+}
