@@ -28,9 +28,12 @@ jobs:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      # Always build from the CURRENT main HEAD. workflow_run.head_sha points at
+      # the commit the score workflow ran on, which predates its own results
+      # commit — checking that out deploys a leaderboard one commit stale.
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref_name }}
+          ref: main
 
       - uses: pnpm/action-setup@v4
         with:
