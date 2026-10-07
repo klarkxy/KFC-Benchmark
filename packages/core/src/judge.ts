@@ -130,7 +130,8 @@ function readTask(value: unknown): Task {
 export function verifyRun(
   config: PublicConfig,
   orderStream: Order[],
-  events: EventRecord[],
+  /** Read-only: the judge folds the stream, it never rewrites it. */
+  events: readonly EventRecord[],
 ): VerifyResult {
   const mismatches: string[] = [];
   const add = (message: string): void => {
@@ -151,7 +152,7 @@ type Add = (message: string) => void;
 function replay(
   config: PublicConfig,
   orderStream: Order[],
-  events: EventRecord[],
+  events: readonly EventRecord[],
   add: Add,
 ): boolean {
   const items = new Map<Id, Item>();

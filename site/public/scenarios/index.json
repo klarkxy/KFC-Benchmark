@@ -1,0 +1,29 @@
+{
+  "schema": "kitchensched-scenarios/1",
+  "scenarios": [
+    {
+      "tier": "easy",
+      "label": "新手厨房",
+      "difficulty": "easy",
+      "scenario_id": "easy-01",
+      "end_at_ms": 300000,
+      "station_count": 5,
+      "order_count": 16,
+      "book_value_minor": 60500,
+      "greedy_score_minor": 54570,
+      "url": "easy.json"
+    },
+    {
+      "tier": "medium",
+      "label": "标准厨房",
+      "difficulty": "medium",
+      "scenario_id": "medium-01",
+      "end_at_ms": 300000,
+      "station_count": 9,
+      "order_count": 20,
+      "book_value_minor": 148940,
+      "greedy_score_minor": 121910,
+      "url": "medium.json"
+    }
+  ]
+}

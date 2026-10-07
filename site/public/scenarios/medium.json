@@ -1,0 +1,1102 @@
+{
+  "schema": "kitchensched-scenario/1",
+  "tier": "medium",
+  "config": {
+    "protocol_version": "0.3.0-web",
+    "scenario_id": "medium-01",
+    "scenario_version": "1",
+    "difficulty": "medium",
+    "end_at_ms": 300000,
+    "currency_unit": "credit_minor",
+    "currency_scale": 100,
+    "items": [
+      {
+        "id": "it.chicken_raw",
+        "name": "Chicken Breast",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.bun_raw",
+        "name": "Burger Bun",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.skin_raw",
+        "name": "Wrap Skin",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.fry_raw",
+        "name": "Frozen Fries",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.sauce_raw",
+        "name": "Sauce Cup Stock",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.drink_raw",
+        "name": "Drink Syrup",
+        "supply": "unlimited_raw",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.chicken_marinated",
+        "name": "Marinated Chicken",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.chicken_breaded",
+        "name": "Breaded Chicken",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.patty_fried",
+        "name": "Fried Chicken Patty",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.bun_hot",
+        "name": "Toasted Bun",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.skin_hot",
+        "name": "Warmed Wrap Skin",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.fries_fried",
+        "name": "Fried Fries",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.sauce_cup",
+        "name": "Portioned Sauce",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.drink_cup",
+        "name": "Poured Drink",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.burger_base",
+        "name": "Burger Base",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "it.wrap_base",
+        "name": "Wrap Base",
+        "supply": "produced",
+        "orderable": false,
+        "price_minor": 0
+      },
+      {
+        "id": "p.burger_classic",
+        "name": "Classic Burger",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 1150
+      },
+      {
+        "id": "p.burger_double",
+        "name": "Double Burger",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 1690
+      },
+      {
+        "id": "p.burger_trio",
+        "name": "Trio Burger",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 2190
+      },
+      {
+        "id": "p.wrap_classic",
+        "name": "Classic Wrap",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 990
+      },
+      {
+        "id": "p.wrap_double",
+        "name": "Double Wrap",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 1490
+      },
+      {
+        "id": "p.fries",
+        "name": "Fries",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 480
+      },
+      {
+        "id": "p.meal_burger",
+        "name": "Burger Meal",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 2180
+      },
+      {
+        "id": "p.meal_wrap",
+        "name": "Wrap Meal",
+        "supply": "produced",
+        "orderable": true,
+        "price_minor": 2080
+      }
+    ],
+    "recipes": [
+      {
+        "id": "r.marinate",
+        "name": "Marinate Chicken",
+        "inputs": [
+          {
+            "item_id": "it.chicken_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.chicken_marinated",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.marinator",
+            "duration_ms": 6000,
+            "max_batches": 4
+          }
+        ]
+      },
+      {
+        "id": "r.bread",
+        "name": "Bread Chicken",
+        "inputs": [
+          {
+            "item_id": "it.chicken_marinated",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.chicken_breaded",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.breader",
+            "duration_ms": 5000,
+            "max_batches": 3
+          }
+        ]
+      },
+      {
+        "id": "r.fry_patty",
+        "name": "Fry Chicken Patty",
+        "inputs": [
+          {
+            "item_id": "it.chicken_breaded",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.patty_fried",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.fryer_a",
+            "duration_ms": 9000,
+            "max_batches": 4
+          },
+          {
+            "station_id": "st.fryer_b",
+            "duration_ms": 12000,
+            "max_batches": 2
+          }
+        ]
+      },
+      {
+        "id": "r.fry_fries",
+        "name": "Fry Fries",
+        "inputs": [
+          {
+            "item_id": "it.fry_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.fries_fried",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.fryer_a",
+            "duration_ms": 4500,
+            "max_batches": 6
+          },
+          {
+            "station_id": "st.fryer_b",
+            "duration_ms": 4000,
+            "max_batches": 8
+          }
+        ]
+      },
+      {
+        "id": "r.heat_bun",
+        "name": "Toast Bun",
+        "inputs": [
+          {
+            "item_id": "it.bun_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.bun_hot",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.heater_a",
+            "duration_ms": 2500,
+            "max_batches": 4
+          },
+          {
+            "station_id": "st.heater_b",
+            "duration_ms": 3200,
+            "max_batches": 2
+          }
+        ]
+      },
+      {
+        "id": "r.heat_skin",
+        "name": "Warm Wrap Skin",
+        "inputs": [
+          {
+            "item_id": "it.skin_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.skin_hot",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.heater_a",
+            "duration_ms": 2200,
+            "max_batches": 3
+          },
+          {
+            "station_id": "st.heater_b",
+            "duration_ms": 2400,
+            "max_batches": 3
+          }
+        ]
+      },
+      {
+        "id": "r.portion_sauce",
+        "name": "Portion Sauce",
+        "inputs": [
+          {
+            "item_id": "it.sauce_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.dispenser",
+            "duration_ms": 1200,
+            "max_batches": 8
+          }
+        ]
+      },
+      {
+        "id": "r.pour_drink",
+        "name": "Pour Drink",
+        "inputs": [
+          {
+            "item_id": "it.drink_raw",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.drink_cup",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.dispenser",
+            "duration_ms": 1800,
+            "max_batches": 6
+          }
+        ]
+      },
+      {
+        "id": "r.build_burger",
+        "name": "Assemble Burger Base",
+        "inputs": [
+          {
+            "item_id": "it.patty_fried",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.bun_hot",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.burger_base",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.assembler",
+            "duration_ms": 3000,
+            "max_batches": 4
+          }
+        ]
+      },
+      {
+        "id": "r.build_wrap",
+        "name": "Assemble Wrap Base",
+        "inputs": [
+          {
+            "item_id": "it.patty_fried",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.skin_hot",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "it.wrap_base",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.assembler",
+            "duration_ms": 2500,
+            "max_batches": 4
+          }
+        ]
+      },
+      {
+        "id": "r.pack_burger_classic",
+        "name": "Pack Classic Burger",
+        "inputs": [
+          {
+            "item_id": "it.burger_base",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.burger_classic",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 2000,
+            "max_batches": 4
+          }
+        ]
+      },
+      {
+        "id": "r.pack_burger_double",
+        "name": "Pack Double Burger",
+        "inputs": [
+          {
+            "item_id": "it.burger_base",
+            "quantity": 2
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.burger_double",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 2600,
+            "max_batches": 3
+          }
+        ]
+      },
+      {
+        "id": "r.pack_burger_trio",
+        "name": "Pack Trio Burger",
+        "inputs": [
+          {
+            "item_id": "it.burger_base",
+            "quantity": 3
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 2
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.burger_trio",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 3200,
+            "max_batches": 2
+          }
+        ]
+      },
+      {
+        "id": "r.pack_wrap_classic",
+        "name": "Pack Classic Wrap",
+        "inputs": [
+          {
+            "item_id": "it.wrap_base",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.wrap_classic",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 1800,
+            "max_batches": 4
+          }
+        ]
+      },
+      {
+        "id": "r.pack_wrap_double",
+        "name": "Pack Double Wrap",
+        "inputs": [
+          {
+            "item_id": "it.wrap_base",
+            "quantity": 2
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.wrap_double",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 2400,
+            "max_batches": 3
+          }
+        ]
+      },
+      {
+        "id": "r.pack_fries",
+        "name": "Pack Fries",
+        "inputs": [
+          {
+            "item_id": "it.fries_fried",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.fries",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 1500,
+            "max_batches": 6
+          }
+        ]
+      },
+      {
+        "id": "r.pack_meal_burger",
+        "name": "Pack Burger Meal",
+        "inputs": [
+          {
+            "item_id": "it.burger_base",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.fries_fried",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.drink_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.meal_burger",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 2800,
+            "max_batches": 2
+          }
+        ]
+      },
+      {
+        "id": "r.pack_meal_wrap",
+        "name": "Pack Wrap Meal",
+        "inputs": [
+          {
+            "item_id": "it.wrap_base",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.fries_fried",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.sauce_cup",
+            "quantity": 1
+          },
+          {
+            "item_id": "it.drink_cup",
+            "quantity": 1
+          }
+        ],
+        "outputs": [
+          {
+            "item_id": "p.meal_wrap",
+            "quantity": 1
+          }
+        ],
+        "station_options": [
+          {
+            "station_id": "st.packager",
+            "duration_ms": 2600,
+            "max_batches": 2
+          }
+        ]
+      }
+    ],
+    "stations": [
+      {
+        "id": "st.marinator",
+        "kind": "marinade",
+        "name": "Marinator"
+      },
+      {
+        "id": "st.breader",
+        "kind": "breading",
+        "name": "Breader"
+      },
+      {
+        "id": "st.fryer_a",
+        "kind": "fryer",
+        "name": "Fryer A"
+      },
+      {
+        "id": "st.fryer_b",
+        "kind": "fryer",
+        "name": "Fryer B"
+      },
+      {
+        "id": "st.heater_a",
+        "kind": "heater",
+        "name": "Heater A"
+      },
+      {
+        "id": "st.heater_b",
+        "kind": "heater",
+        "name": "Heater B"
+      },
+      {
+        "id": "st.assembler",
+        "kind": "assembly",
+        "name": "Assembler"
+      },
+      {
+        "id": "st.dispenser",
+        "kind": "dispenser",
+        "name": "Dispenser"
+      },
+      {
+        "id": "st.packager",
+        "kind": "packaging",
+        "name": "Packager"
+      }
+    ],
+    "rules": {
+      "clock": "paused_code",
+      "settlement": "whole_order",
+      "batch_timing": "fixed_within_capacity",
+      "finish_at_deadline_counts": true,
+      "delivery_duration_ms": 0,
+      "cancellation": "unsupported"
+    },
+    "limits": {
+      "init_wall_ms": 5000,
+      "decision_wall_ms": 2000,
+      "total_cpu_ms": 30000,
+      "memory_mib": 256,
+      "max_decisions": 20000,
+      "max_actions_per_decision": 1024,
+      "max_total_actions": 200000,
+      "min_wake_delay_ms": 20,
+      "max_message_bytes": 4194304,
+      "max_stderr_bytes": 1048576,
+      "max_pids": 64,
+      "max_writable_mib": 64,
+      "max_orders_per_run": 1024
+    }
+  },
+  "orders": [
+    {
+      "id": "o1",
+      "arrived_at_ms": 60000,
+      "items": [
+        {
+          "item_id": "p.fries",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 1
+        }
+      ],
+      "value_minor": 10590
+    },
+    {
+      "id": "o2",
+      "arrived_at_ms": 72000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 10410
+    },
+    {
+      "id": "o3",
+      "arrived_at_ms": 84000,
+      "items": [
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 8850
+    },
+    {
+      "id": "o4",
+      "arrived_at_ms": 96000,
+      "items": [
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 9930
+    },
+    {
+      "id": "o5",
+      "arrived_at_ms": 108000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 8350
+    },
+    {
+      "id": "o6",
+      "arrived_at_ms": 120000,
+      "items": [
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 4960
+    },
+    {
+      "id": "o7",
+      "arrived_at_ms": 132000,
+      "items": [
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 2300
+    },
+    {
+      "id": "o8",
+      "arrived_at_ms": 144000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 12480
+    },
+    {
+      "id": "o9",
+      "arrived_at_ms": 156000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 7670
+    },
+    {
+      "id": "o10",
+      "arrived_at_ms": 168000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 1980
+    },
+    {
+      "id": "o11",
+      "arrived_at_ms": 180000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 3290
+    },
+    {
+      "id": "o12",
+      "arrived_at_ms": 192000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 10880
+    },
+    {
+      "id": "o13",
+      "arrived_at_ms": 204000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 10680
+    },
+    {
+      "id": "o14",
+      "arrived_at_ms": 216000,
+      "items": [
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 3
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 5430
+    },
+    {
+      "id": "o15",
+      "arrived_at_ms": 228000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_double",
+          "quantity": 1
+        }
+      ],
+      "value_minor": 7830
+    },
+    {
+      "id": "o16",
+      "arrived_at_ms": 240000,
+      "items": [
+        {
+          "item_id": "p.burger_double",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.burger_classic",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 6640
+    },
+    {
+      "id": "o17",
+      "arrived_at_ms": 252000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 1
+        },
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.fries",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.wrap_double",
+          "quantity": 3
+        }
+      ],
+      "value_minor": 10800
+    },
+    {
+      "id": "o18",
+      "arrived_at_ms": 264000,
+      "items": [
+        {
+          "item_id": "p.meal_wrap",
+          "quantity": 2
+        },
+        {
+          "item_id": "p.meal_burger",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 8520
+    },
+    {
+      "id": "o19",
+      "arrived_at_ms": 276000,
+      "items": [
+        {
+          "item_id": "p.burger_trio",
+          "quantity": 2
+        }
+      ],
+      "value_minor": 4380
+    },
+    {
+      "id": "o20",
+      "arrived_at_ms": 288000,
+      "items": [
+        {
+          "item_id": "p.wrap_classic",
+          "quantity": 3
+        }
+      ],
+      "value_minor": 2970
+    }
+  ],
+  "stream": {
+    "visibility": "public",
+    "tag": "practice",
+    "seed": 20261007,
+    "generator_version": "scen/0.3.0"
+  },
+  "policy_seed": 42,
+  "reference": {
+    "greedy_score_minor": 121910,
+    "book_value_minor": 148940
+  }
+}

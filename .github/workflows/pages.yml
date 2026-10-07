@@ -70,6 +70,12 @@ jobs:
             fs.writeFileSync(sitePath, JSON.stringify(generated, null, 2) + "\n");
           '
 
+      # Browser-playable bundles under site/public/scenarios/. Every workspace
+      # package resolves through its exports map to src/, so tsx needs no dist;
+      # regenerating here keeps the deployed game in step with the scenarios.
+      - name: Generate scenario bundles
+        run: pnpm exec tsx site/scripts/gen-scenarios.mts
+
       - run: pnpm --filter @kitchensched/site build
 
       - uses: actions/configure-pages@v5

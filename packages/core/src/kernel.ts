@@ -63,6 +63,17 @@ export interface RunOutput {
 
 export type FailureCode = "PROTOCOL_ERROR" | "TIMEOUT" | "BUDGET_EXCEEDED";
 
+/**
+ * One step of an interactive (human-played) run: `observation` while the game
+ * still has a decision to make, `done` once the final decision has been
+ * applied, `invalid` when the submission cannot be accepted. The `events` array
+ * holds the records emitted since the previous step.
+ */
+export type InteractiveStep =
+  | { kind: "observation"; observation: Observation; events: EventRecord[] }
+  | { kind: "done"; output: RunOutput; events: EventRecord[] }
+  | { kind: "invalid"; reason: string };
+
 /* ------------------------------------------------------------------ *
  * Internal world model
  * ------------------------------------------------------------------ */
@@ -249,6 +260,15 @@ export class Kernel {
   private final_action_results: ActionResult[] = [];
   private final_wake_result: WakeResult | null = null;
 
+  /* Interactive session state (human play). The controller is never consulted
+   * and no wall clock is read while it is active. */
+  private interactive_mode = false;
+  private interactive_observation: Observation | null = null;
+  private interactive_final = false;
+  private interactive_output: RunOutput | null = null;
+  /** Events already handed to the caller; the rest come with the next step. */
+  private interactive_cursor = 0;
+
   private decisions = 0;
   private total_actions = 0;
   private decision_wall_ms = 0;
@@ -305,22 +325,9 @@ export class Kernel {
       this.observe_and_decide(false);
     }
     while (this.failure === null) {
-      const t = this.next_tick_time();
-      if (t > this.now_ms) {
-        const from_ms = this.now_ms;
-        this.now_ms = t;
-        this.emit("clock_advanced", { from_ms, to_ms: t });
-      }
-      if (t >= this.config.end_at_ms) {
-        // Doc 02 §8: settle tasks finishing exactly at the deadline, then one
-        // final deliver-only observe; the endgame registers no wake.
-        this.settle_tasks_at(this.now_ms);
-        this.clear_pending_wake();
-        this.observe_and_decide(true);
-        break;
-      }
-      this.process_tick(t);
-      this.observe_and_decide(false);
+      const final = this.tick_once();
+      this.observe_and_decide(final);
+      if (final) break;
     }
     return this.finish();
   }
@@ -344,6 +351,30 @@ export class Kernel {
   }
 
   /* --------------------------- event loop -------------------------- */
+
+  /**
+   * One iteration of the event loop, shared verbatim by `run()` and by
+   * `advanceInteractive()`: move the clock to the next tick, then process it.
+   * Returns whether the observe that follows is the final deliver-only one.
+   *
+   * Doc 02 §8: at the deadline, tasks finishing exactly then settle first and
+   * the endgame registers no wake.
+   */
+  private tick_once(): boolean {
+    const t = this.next_tick_time();
+    if (t > this.now_ms) {
+      const from_ms = this.now_ms;
+      this.now_ms = t;
+      this.emit("clock_advanced", { from_ms, to_ms: t });
+    }
+    if (t >= this.config.end_at_ms) {
+      this.settle_tasks_at(this.now_ms);
+      this.clear_pending_wake();
+      return true;
+    }
+    this.process_tick(t);
+    return false;
+  }
 
   private next_tick_time(): number {
     let min: number | null = this.next_arrival_time();
@@ -466,6 +497,16 @@ export class Kernel {
       this.failure = "PROTOCOL_ERROR";
       return;
     }
+    this.applyDecision(decision, final);
+  }
+
+  /**
+   * The half of a decision that does not depend on who authored it, shared by
+   * the controller callback and by an interactive submission. Keeping one
+   * implementation is what makes an interactive event stream indistinguishable
+   * from a `run()` event stream for the same decisions.
+   */
+  private applyDecision(decision: Decision, final: boolean): void {
     if (decision.actions.length > this.limits.max_actions_per_decision) {
       this.failure = "BUDGET_EXCEEDED";
       return;
@@ -520,6 +561,93 @@ export class Kernel {
         this.previous_wake_result === null ? null : { ...this.previous_wake_result },
       pending_wake_at_ms: this.pending_wake_at_ms,
     };
+  }
+
+  /* ------------------------- interactive --------------------------- */
+
+  /**
+   * Starts an interactive run and pauses at the t=0 observation. The startup
+   * events are exactly the ones `run()` emits before its first callback (none
+   * today), the injected controller is never consulted, and no wall-clock
+   * budget is measured: the human is the policy, so TIMEOUT/PROTOCOL_ERROR
+   * cannot occur. Every later step reuses `tick_once`, `build_observation` and
+   * `applyDecision`, which is what keeps the two event streams identical.
+   */
+  beginInteractive(): InteractiveStep {
+    if (this.interactive_mode) {
+      return { kind: "invalid", reason: "beginInteractive: this kernel is already interactive" };
+    }
+    if (this.now_ms !== 0 || this.events.length > 0 || this.decisions > 0) {
+      return { kind: "invalid", reason: "beginInteractive: this kernel has already run" };
+    }
+    this.interactive_mode = true;
+    if (this.decisions >= this.limits.max_decisions) {
+      return this.finishInteractive();
+    }
+    return this.observeInteractive(false);
+  }
+
+  /**
+   * Applies one human decision and advances to the next decision point (or to
+   * the end). A decision that fails `normalizeDecision`, or a submission made
+   * with no observation pending or after the run is over, is rejected with zero
+   * state mutation: no event, no clock movement, session still usable.
+   *
+   * Semantically illegal actions are not rejected here — they become ordinary
+   * ActionResult codes in the next observation, exactly as in `run()`.
+   */
+  advanceInteractive(decision: Decision): InteractiveStep {
+    if (!this.interactive_mode) {
+      return { kind: "invalid", reason: "advanceInteractive: beginInteractive has not been called" };
+    }
+    if (this.interactive_output !== null) {
+      return { kind: "invalid", reason: "advanceInteractive: the run is already finished" };
+    }
+    if (this.interactive_observation === null) {
+      return { kind: "invalid", reason: "advanceInteractive: no observation is pending" };
+    }
+    const normalized = normalizeDecision(decision);
+    if (normalized === null) {
+      return { kind: "invalid", reason: "advanceInteractive: decision is not a well-formed Decision" };
+    }
+
+    const final = this.interactive_final;
+    this.interactive_observation = null;
+    this.applyDecision(normalized, final);
+    // A budget violation (the one failure code interactive mode can still
+    // encode, because it is a scenario rule rather than a timing artifact)
+    // ends the run exactly as it ends run().
+    if (this.failure !== null) return this.finishInteractive();
+    if (final) return this.finishInteractive();
+
+    const next_final = this.tick_once();
+    if (this.decisions >= this.limits.max_decisions) {
+      this.failure = "BUDGET_EXCEEDED";
+      return this.finishInteractive();
+    }
+    return this.observeInteractive(next_final);
+  }
+
+  /** Builds and parks the next observation, counting it like run() does. */
+  private observeInteractive(final: boolean): InteractiveStep {
+    const observation = this.build_observation(final);
+    this.decisions += 1;
+    this.interactive_observation = observation;
+    this.interactive_final = final;
+    return { kind: "observation", observation, events: this.takeInteractiveEvents() };
+  }
+
+  private finishInteractive(): InteractiveStep {
+    const output = this.finish();
+    this.interactive_output = output;
+    return { kind: "done", output, events: this.takeInteractiveEvents() };
+  }
+
+  /** The records emitted since the previous step, in seq order. */
+  private takeInteractiveEvents(): EventRecord[] {
+    const slice = this.events.slice(this.interactive_cursor);
+    this.interactive_cursor = this.events.length;
+    return slice;
   }
 
   /* ----------------------------- actions --------------------------- */

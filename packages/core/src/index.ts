@@ -9,8 +9,8 @@
  * Semantics follow doc 02 (仿真引擎与裁判规则) and doc 03 (控制器协议与SDK).
  */
 
-export { runScenario } from "./kernel.js";
-export type { FailureCode, RunOptions, RunOutput, RunStats } from "./kernel.js";
+export { Kernel, runScenario } from "./kernel.js";
+export type { FailureCode, InteractiveStep, RunOptions, RunOutput, RunStats } from "./kernel.js";
 
 export { verifyRun } from "./judge.js";
 export type { VerifyResult } from "./judge.js";

@@ -478,8 +478,267 @@ ul.plain {
   margin: 2px 0;
 }
 
+/* ---------------------------------- play ---------------------------------- */
+
+.tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tabs.compact {
+  margin-bottom: 10px;
+}
+
+.endgame-hint {
+  margin-left: 8px;
+  align-self: center;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.how-to-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.how-to-list li::marker {
+  color: var(--accent);
+}
+
+.scenario-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text);
+  transition: border-color 120ms ease;
+}
+
+.scenario-card:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.scenario-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scenario-card-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.badge.difficulty {
+  margin-left: 0;
+}
+
+.scenario-cta {
+  margin-top: auto;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.play-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+  align-items: start;
+}
+
+.card-list {
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.order-row,
+.inv-row,
+.station-row,
+.staged-row {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inv-row,
+.staged-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.order-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 8px;
+  margin: 2px 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.pill.good {
+  border-color: rgba(63, 185, 80, 0.55);
+  color: var(--good);
+  background: rgba(63, 185, 80, 0.1);
+}
+
+.pill.bad {
+  border-color: rgba(248, 81, 73, 0.55);
+  color: var(--bad);
+  background: rgba(248, 81, 73, 0.1);
+}
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.field > span {
+  color: var(--muted);
+  width: 108px;
+  flex: none;
+}
+
+.field select,
+.field input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+}
+
+.recipe-info .wrap {
+  word-break: break-all;
+}
+
+.feedback {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12.5px;
+}
+
+.feedback.bad {
+  border-color: rgba(248, 81, 73, 0.5);
+  color: var(--bad);
+}
+
+.feedback.ok {
+  border-color: rgba(63, 185, 80, 0.4);
+}
+
+.code-ok {
+  color: var(--good);
+}
+
+.code-bad {
+  color: var(--bad);
+}
+
+.button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  padding: 2px 8px;
+}
+
+.button.ghost:hover:not(:disabled) {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+.button.wide {
+  width: 100%;
+  margin-top: 10px;
+  min-width: 0;
+}
+
+.end-panel {
+  border-color: rgba(88, 166, 255, 0.45);
+}
+
+.end-score {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.end-score .money {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.end-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0 8px;
+}
+
 @media (max-width: 900px) {
   .replay-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 

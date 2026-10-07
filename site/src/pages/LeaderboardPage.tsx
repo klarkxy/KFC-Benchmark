@@ -124,19 +124,24 @@ export function LeaderboardPage(): JSX.Element {
 
   return (
     <section className="stack">
-      <div className="tabs" role="tablist" aria-label="数据版本">
-        {versions.map((entry) => (
-          <button
-            key={entry.benchmark_version}
-            type="button"
-            role="tab"
-            aria-selected={entry.benchmark_version === versionName}
-            className={entry.benchmark_version === versionName ? "tab active" : "tab"}
-            onClick={() => setVersionName(entry.benchmark_version)}
-          >
-            {entry.benchmark_version}
-          </button>
-        ))}
+      <div className="tabs-row">
+        <div className="tabs" role="tablist" aria-label="数据版本">
+          {versions.map((entry) => (
+            <button
+              key={entry.benchmark_version}
+              type="button"
+              role="tab"
+              aria-selected={entry.benchmark_version === versionName}
+              className={entry.benchmark_version === versionName ? "tab active" : "tab"}
+              onClick={() => setVersionName(entry.benchmark_version)}
+            >
+              {entry.benchmark_version}
+            </button>
+          ))}
+        </div>
+        <a className="button primary" href={href("/play")}>
+          试玩一手
+        </a>
       </div>
 
       <div className="leaderboard-meta">

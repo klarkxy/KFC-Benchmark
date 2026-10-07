@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 export type Route =
   | { name: "leaderboard" }
   | { name: "replay"; runId: string; version?: string }
+  | { name: "play"; tier?: string }
   | { name: "methodology" };
 
 export const DEFAULT_HASH = "#/";
@@ -11,6 +12,7 @@ export const DEFAULT_HASH = "#/";
  * `#/replay/<version>/<runId>` -> version-qualified replay (preferred: the
  * leaderboard knows the version, so no cross-version probing is needed).
  * `#/replay/<runId>` -> legacy bare form, resolved by probing versions.
+ * `#/play` -> scenario picker, `#/play/<tier>` -> one game session.
  * Unknown hashes fall back home.
  */
 export function parseRoute(hash: string): Route {
@@ -18,6 +20,11 @@ export function parseRoute(hash: string): Route {
   const segments = path.split("/").filter((segment) => segment.length > 0);
   const head = segments[0];
   if (head === "methodology") return { name: "methodology" };
+  if (head === "play") {
+    return segments[1]
+      ? { name: "play", tier: decodeURIComponent(segments[1]) }
+      : { name: "play" };
+  }
   if (head === "replay" && segments[1]) {
     if (segments[2]) {
       return {

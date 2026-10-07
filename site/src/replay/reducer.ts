@@ -4,6 +4,7 @@ import type {
   EventType,
   Lot,
   Order,
+  PublicConfig,
   Task,
 } from "@kitchensched/contracts";
 
@@ -83,6 +84,39 @@ function withStation(
   const next = stations.slice();
   next[index] = { id: stationId, task };
   return next;
+}
+
+/**
+ * Registers every station of `config` up front, keeping the tasks already
+ * folded into `state`.
+ *
+ * A replay learns a station exists only when its first task starts, so a
+ * freshly opened or just-started replay draws an empty kitchen panel. The
+ * human game needs the opposite: its first decision happens at t=0 with no
+ * events at all, and the player must see the whole kitchen to pick a station.
+ * Seeding is additive and idempotent — later `task_started` / `task_completed`
+ * events find their station by id and only replace its task, so folding
+ * continues exactly as before.
+ */
+export function seedStations(
+  state: ReplayState,
+  config: Pick<PublicConfig, "stations">,
+): ReplayState {
+  if (state.stations.length >= config.stations.length) {
+    const known = new Set(state.stations.map((station) => station.id));
+    if (config.stations.every((station) => known.has(station.id))) return state;
+  }
+  const byId = new Map(state.stations.map((station) => [station.id, station.task] as const));
+  const merged: StationSnapshot[] = config.stations.map((station) => ({
+    id: station.id,
+    task: byId.get(station.id) ?? null,
+  }));
+  // A station seen in the stream but absent from the config (should not happen,
+  // but the stream is authoritative for what happened) stays visible.
+  for (const station of state.stations) {
+    if (!merged.some((entry) => entry.id === station.id)) merged.push(station);
+  }
+  return { ...state, stations: merged };
 }
 
 /** Folds one event. Returns a new state; the input is never mutated. */

@@ -1,6 +1,14 @@
-import { createHash } from "node:crypto";
 import { canonicalSerialize } from "@kitchensched/contracts";
 import type { Id, ItemQty, UInt } from "@kitchensched/contracts";
+
+import { sha256Hex } from "./sha256.js";
+
+/**
+ * The digest is vendored (see ./sha256.ts) instead of taken from Node's crypto
+ * module so the identical hash is produced by the Node host and by the browser
+ * game.
+ */
+export { sha256Hex };
 
 /**
  * The exact projection of the world that participates in the state hash
@@ -69,10 +77,6 @@ export interface HashState {
 /** sha256 hex of the canonical serialization of the given hash state. */
 export function computeStateHash(state: HashState): string {
   return sha256Hex(canonicalSerialize(state));
-}
-
-export function sha256Hex(text: string): string {
-  return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
