@@ -4,6 +4,11 @@
       "benchmark_version": "p1-dev",
       "leaderboard": "p1-dev/leaderboard.json",
       "published_at_iso": "2026-10-07T14:01:24.699Z"
+    },
+    {
+      "benchmark_version": "demo-v1",
+      "leaderboard": "demo-v1/leaderboard.json",
+      "published_at_iso": "2026-10-06T10:00:00.000Z"
     }
   ]
 }

@@ -47,20 +47,21 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Save the site's own index BEFORE the overlay clobbers it, otherwise
+      # site-only versions (demo-v1) can never be carried over.
       - name: Overlay results into the site
         run: |
           mkdir -p site/public/results
+          cp site/public/results/index.json /tmp/site-index.json
           cp -r results/. site/public/results/
 
-      # The overlay overwrites results/index.json, which would drop version
-      # entries the site ships on its own (demo-v1). Generated entries win;
-      # site-only entries are carried over.
+      # Generated (repo results/) entries win; site-only entries are carried over.
       - name: Merge site-only index entries
         run: |
           node --input-type=commonjs -e '
             const fs = require("fs");
             const sitePath = "site/public/results/index.json";
-            const site = fs.existsSync(sitePath) ? JSON.parse(fs.readFileSync(sitePath, "utf8")) : { versions: [] };
+            const site = fs.existsSync("/tmp/site-index.json") ? JSON.parse(fs.readFileSync("/tmp/site-index.json", "utf8")) : { versions: [] };
             const generated = JSON.parse(fs.readFileSync("results/index.json", "utf8"));
             const known = new Set(generated.versions.map((entry) => entry.benchmark_version));
             for (const entry of site.versions) {
