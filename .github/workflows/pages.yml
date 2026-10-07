@@ -3,6 +3,7 @@ name: pages
 # Deploys the static site. results/ is overlaid onto the site's own
 # public/results/ so a scored leaderboard is live without a rebuild commit.
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
