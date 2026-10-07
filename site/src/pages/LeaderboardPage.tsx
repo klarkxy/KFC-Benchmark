@@ -231,7 +231,12 @@ export function LeaderboardPage(): JSX.Element {
                     </td>
                     <td>
                       {target ? (
-                        <a className="replay-link" href={href(`/replay/${encodeURIComponent(target)}`)}>
+                        <a
+                          className="replay-link"
+                          href={href(
+                            `/replay/${encodeURIComponent(versionName)}/${encodeURIComponent(target)}`,
+                          )}
+                        >
                           回放
                         </a>
                       ) : (

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RunRecord } from "@kitchensched/contracts";
 import { formatMinor, formatSimMs } from "../lib/format";
 import { DIFFICULTY_LABELS, STATUS_LABELS } from "../lib/labels";
-import { loadIndex, loadReplay, resolveRun, type ReplayFileData } from "../lib/results";
+import { loadIndex, loadReplay, loadRun, resolveRun, type ReplayFileData } from "../lib/results";
 import { ReplayCanvas } from "../replay/ReplayCanvas";
 import { describeEvent } from "../replay/describe";
 import { inventoryOf, ReplayCursor } from "../replay/reducer";
@@ -17,7 +17,13 @@ type LoadState =
   | { status: "no-replay"; run: RunRecord }
   | { status: "ready"; run: RunRecord; replay: ReplayFileData };
 
-export function ReplayPage({ runId }: { runId: string }): JSX.Element {
+export function ReplayPage({
+  runId,
+  version,
+}: {
+  runId: string;
+  version?: string | undefined;
+}): JSX.Element {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [cursorMs, setCursorMs] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -30,8 +36,11 @@ export function ReplayPage({ runId }: { runId: string }): JSX.Element {
     setState({ status: "loading" });
     (async () => {
       try {
-        const index = await loadIndex();
-        const { run } = await resolveRun(index, runId);
+        // Version-qualified links (from the leaderboard) load the run
+        // directly; bare legacy links probe every published version.
+        const run = version
+          ? await loadRun(version, runId)
+          : (await resolveRun(await loadIndex(), runId)).run;
         if (cancelled) return;
         if (!run.replay) {
           setState({ status: "no-replay", run });
@@ -51,7 +60,7 @@ export function ReplayPage({ runId }: { runId: string }): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [runId]);
+  }, [runId, version]);
 
   // One cursor per replay: forward seeks fold incrementally, backward seeks
   // rebuild from event 0 (no checkpoints in phase 1).

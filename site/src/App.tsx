@@ -33,7 +33,13 @@ export function App(): JSX.Element {
       <Header />
       <main className="content">
         {route.name === "leaderboard" ? <LeaderboardPage /> : null}
-        {route.name === "replay" ? <ReplayPage key={route.runId} runId={route.runId} /> : null}
+        {route.name === "replay" ? (
+          <ReplayPage
+            key={`${route.version ?? ""}/${route.runId}`}
+            runId={route.runId}
+            version={route.version}
+          />
+        ) : null}
         {route.name === "methodology" ? <MethodologyPage /> : null}
       </main>
       <footer className="footer muted small">
