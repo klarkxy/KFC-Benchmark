@@ -12,8 +12,8 @@
   },
   "result": {
     "status": "completed",
-    "score_minor": 50460,
-    "revenue_minor": 50460,
+    "score_minor": 54570,
+    "revenue_minor": 54570,
     "delivered_orders": 15,
     "failure_code": null,
     "final_action_results": [],
@@ -23,12 +23,12 @@
       "pending_wake_at_ms": null
     }
   },
-  "state_hash": "7bd6e5544bbbda99b04d2985767911c896c7b52d7917bd92ac2a31de331ff20d",
+  "state_hash": "b5f5117a5ea5ce3e80a4751c61e81bbc46ea69a034c57ce6931fb16426ab1585",
   "replay": null,
   "wall": {
-    "decisions": 143,
-    "total_actions": 151,
-    "duration_ms": 4
+    "decisions": 157,
+    "total_actions": 163,
+    "duration_ms": 6
   },
-  "finished_at_iso": "2026-10-07T14:19:17.938Z"
+  "finished_at_iso": "2026-10-07T19:04:52.332Z"
 }
