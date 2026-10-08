@@ -171,6 +171,7 @@ function Shift({
   return (
     <GameScreen
       config={bundle.config}
+      botScoreMinor={bundle.reference.greedy_score_minor}
       flow={flow}
       onExit={() => {
         window.location.hash = href("/play");

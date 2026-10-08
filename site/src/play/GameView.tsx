@@ -11,7 +11,7 @@ import {
 
 import { formatMinor, formatSimMs } from "../lib/format";
 import { itemLabel, recipeLabel, stationLabel } from "../lib/labels";
-import { SPEEDS, queuedOrderIds, queuedStationIds, type Speed, type Toast } from "./engine";
+import { SPEEDS, pickSmartRecipe, queuedOrderIds, queuedStationIds, type RecipeCandidate, type Speed, type Toast } from "./engine";
 import {
   COIN,
   customerEmoji,
@@ -36,18 +36,43 @@ type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 /** `station_options[number]` — the contracts package does not re-export it. */
 type StationOption = Recipe["station_options"][number];
 
+const COACH_KEY = "kitchensched-coach-seen";
+
+type CoachStage = "station" | "ticket" | "off";
+
+function readCoachSeen(): boolean {
+  try {
+    return window.localStorage.getItem(COACH_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeCoachSeen(): void {
+  try {
+    window.localStorage.setItem(COACH_KEY, "1");
+  } catch {
+    // private mode must not block the game
+  }
+}
 
 interface GameScreenProps {
   config: PublicConfig;
+  /** The greedy baseline's score on this stream, for the head-to-head race. */
+  botScoreMinor: number;
   flow: GameFlow;
   onExit: () => void;
 }
 
-export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Element {
+export function GameScreen({ config, botScoreMinor, flow, onExit }: GameScreenProps): JSX.Element {
   const { folded, phase } = flow;
   const [openStation, setOpenStation] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [hoverOrder, setHoverOrder] = useState<string | null>(null);
+  const [smartHintShown, setSmartHintShown] = useState(false);
+  const [coachStage, setCoachStage] = useState<CoachStage>(() =>
+    readCoachSeen() ? "off" : "station",
+  );
 
   // What the player may act on: the kernel's parked observation, not the
   // animation. The rail still reads the fold, so tickets land on cue.
@@ -56,17 +81,110 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
   const queuedStations = useMemo(() => queuedStationIds(flow.queue), [flow.queue]);
   const queuedOrders = useMemo(() => queuedOrderIds(flow.queue), [flow.queue]);
 
+  /** What the outstanding tickets are actually waiting for. */
+  const wanted = useMemo(() => {
+    const ids = new Set<string>();
+    for (const order of flow.openOrders) {
+      for (const line of order.items) ids.add(line.item_id);
+    }
+    return ids;
+  }, [flow.openOrders]);
+
+  /** Largest batch the pantry can feed, or 0 when the recipe is not craftable. */
+  const affordableFor = useCallback(
+    (recipe: Recipe, max: number): number => {
+      for (let batches = max; batches >= 1; batches -= 1) {
+        if (planStartInputs(lots, recipe, batches, produced, flow.reservations).complete) {
+          return batches;
+        }
+      }
+      return 0;
+    },
+    [lots, produced, flow.reservations],
+  );
+
+  const candidatesFor = useCallback(
+    (stationId: string): RecipeCandidate[] =>
+      config.recipes
+        .filter((recipe) =>
+          recipe.station_options.some((option) => option.station_id === stationId),
+        )
+        .map((recipe) => {
+          const option = recipe.station_options.find(
+            (entry: StationOption) => entry.station_id === stationId,
+          );
+          const max = option?.max_batches ?? 1;
+          return {
+            recipe,
+            affordableBatches: affordableFor(recipe, max),
+            wanted: recipe.outputs.some((output) => wanted.has(output.item_id)),
+          };
+        }),
+    [config.recipes, affordableFor, wanted],
+  );
+
   const closePopover = useCallback(() => {
     setOpenStation(null);
     flow.setInteracting(false);
   }, [flow]);
 
+  /**
+   * Deliberate choice. Any queued default for this station is dropped first:
+   * tapping ⋯ after a plain tap means "not that one", and a double-click fires
+   * a tap before the dblclick, so this is what keeps the two apart.
+   */
   const openRecipePopover = (stationId: string): void => {
     const snapshot = folded.stations.find((entry) => entry.id === stationId);
-    if (!snapshot || snapshot.task !== null || queuedStations.has(stationId)) return;
+    if (!snapshot || snapshot.task !== null) return;
+    const queued = flow.queue.find(
+      (entry) => entry.action.type === "start" && entry.action.station_id === stationId,
+    );
+    if (queued) flow.dequeueAction(queued.action.action_id);
+    if (queuedStations.has(stationId)) return;
     setOpenStation(stationId);
     flow.setInteracting(true);
   };
+
+  /** A plain tap: fire the smart default, or explain why nothing is craftable. */
+  const quickStart = (stationId: string): void => {
+    const snapshot = folded.stations.find((entry) => entry.id === stationId);
+    if (!snapshot || snapshot.task !== null || queuedStations.has(stationId)) return;
+    const pick = pickSmartRecipe(candidatesFor(stationId));
+    if (pick === null) {
+      openRecipePopover(stationId);
+      return;
+    }
+    const hint = smartHintShown ? undefined : "点 ⋯ 换配方";
+    setSmartHintShown(true);
+    flow.queueStart(pick.recipe, stationId, pick.affordableBatches, hint);
+  };
+
+  /** 🔁 repeats exactly what the station last made, or says why it can't. */
+  const repeatLast = (stationId: string, event: React.MouseEvent): void => {
+    event.stopPropagation();
+    const hint = flow.repeat.get(stationId);
+    if (!hint) return;
+    const recipe = config.recipes.find((entry) => entry.id === hint.recipeId);
+    if (!recipe) return;
+    const queued = flow.queue.find(
+      (entry) => entry.action.type === "start" && entry.action.station_id === stationId,
+    );
+    if (queued) flow.dequeueAction(queued.action.action_id);
+    flow.queueStart(recipe, stationId, hint.batches, "重复上一次");
+  };
+
+  const canRepeat = useCallback(
+    (stationId: string): boolean => {
+      const hint = flow.repeat.get(stationId);
+      if (!hint) return false;
+      const recipe = config.recipes.find((entry) => entry.id === hint.recipeId);
+      if (!recipe) return false;
+      return (
+        planStartInputs(lots, recipe, hint.batches, produced, flow.reservations).complete
+      );
+    },
+    [flow.repeat, config.recipes, lots, produced, flow.reservations],
+  );
 
   const shake = (id: string): void => {
     setShakeId(id);
@@ -99,6 +217,48 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
     return ids;
   }, [hoveredOrder]);
 
+  /* --------------------------- first-run coach --------------------------- */
+
+  // Long press opens the deliberate-chooser without a second control.
+  const pressRef = useRef<number | null>(null);
+  const longPressRef = useRef(false);
+  const beginPress = (stationId: string): void => {
+    const snapshot = folded.stations.find((entry) => entry.id === stationId);
+    if (!snapshot || snapshot.task !== null) return;
+    longPressRef.current = false;
+    pressRef.current = window.setTimeout(() => {
+      pressRef.current = null;
+      longPressRef.current = true;
+      openRecipePopover(stationId);
+    }, 500);
+  };
+  const endPress = (): void => {
+    if (pressRef.current !== null) window.clearTimeout(pressRef.current);
+    pressRef.current = null;
+  };
+
+  // The coach walks the player through one start, then one delivery.
+  const anyQueuedStart = flow.queue.some((entry) => entry.action.type === "start");
+  useEffect(() => {
+    if (coachStage !== "station" || !anyQueuedStart) return;
+    setCoachStage("ticket");
+  }, [coachStage, anyQueuedStart]);
+  useEffect(() => {
+    if (coachStage !== "ticket" || folded.deliveredOrders < 1) return;
+    setCoachStage("off");
+  }, [coachStage, folded.deliveredOrders]);
+
+  const coachStationId =
+    coachStage === "station"
+      ? (folded.stations.find((entry) => entry.task === null)?.id ?? null)
+      : null;
+
+  const dismissCoach = (thenOpen: boolean): void => {
+    writeCoachSeen();
+    setCoachStage("off");
+    if (thenOpen) flow.openDay();
+  };
+
   const rootVars: Vars = { "--day-end": config.end_at_ms };
 
   return (
@@ -109,7 +269,7 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
       data-hover-order={hoverOrder ?? undefined}
       style={rootVars}
     >
-      <Hud config={config} flow={flow} onExit={onExit} />
+      <Hud config={config} botScoreMinor={botScoreMinor} flow={flow} onExit={onExit} />
 
       <section className="k-rail-wrap" aria-label="订单栏">
         <h2 className="k-rail-title">
@@ -129,6 +289,7 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
                   key={order.id}
                   type="button"
                   data-order-id={order.id}
+                  data-coach={!done && ready && coachStage === "ticket" ? "ticket" : undefined}
                   aria-label={`订单 ${order.id}，${order.items
                     .map((line) => `${itemLabel(line.item_id)}×${line.quantity}`)
                     .join("、")}，售价 ${formatMinor(order.value_minor)}`}
@@ -197,46 +358,100 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
           {folded.stations.map((station) => {
             const task = station.task;
             const queued = queuedStations.has(station.id);
+            const hint = flow.repeat.get(station.id);
+            const repeatOk = task === null && !queued && canRepeat(station.id);
             return (
-              <button
+              <div
                 key={station.id}
-                type="button"
-                data-station-id={station.id}
-                aria-label={`工位 ${stationLabel(station.id)}`}
-                className={classList(
-                  "k-station",
-                  // Mutually exclusive: `is-idle` must mean "you can tap me
-                  // right now", otherwise a station waiting on its queued
-                  // action looks clickable and is not.
-                  task ? "is-busy" : queued ? "is-queued" : "is-idle",
-                )}
-                style={
-                  task
-                    ? ({ "--t0": task.started_at_ms, "--t1": task.finish_at_ms } as Vars)
-                    : undefined
-                }
-                disabled={task !== null || queued}
-                onClick={(event) => { releaseFocus(event); openRecipePopover(station.id); }}
+                className={classList("k-station-wrap", coachStationId === station.id && "is-coached")}
+                data-station-wrap={station.id}
               >
-                {task ? <span className="k-ring" aria-hidden="true" /> : null}
-                <span className="k-station-emoji" aria-hidden="true">
-                  {stationEmoji(station.id)}
-                </span>
-                <span className="k-station-name">{stationLabel(station.id)}</span>
-                {task ? (
-                  <>
-                    <span className="k-task">
-                      <span aria-hidden="true">{recipeEmoji(task.recipe_id)}</span>
-                      {recipeLabel(task.recipe_id)} ×{task.batches}
-                    </span>
-                    <span className="k-finish">⏱ {formatSimMs(task.finish_at_ms)} 出锅</span>
-                  </>
-                ) : queued ? (
-                  <span className="k-idle">已排队 · 下一拍开工</span>
-                ) : (
-                  <span className="k-idle">点我开工 👆</span>
-                )}
-              </button>
+                <button
+                  type="button"
+                  data-station-id={station.id}
+                  data-coach={coachStationId === station.id ? "station" : undefined}
+                  aria-label={`工位 ${stationLabel(station.id)}`}
+                  className={classList(
+                    "k-station",
+                    // Mutually exclusive: `is-idle` must mean "you can tap me
+                    // right now", otherwise a station waiting on its queued
+                    // action looks clickable and is not.
+                    task ? "is-busy" : queued ? "is-queued" : "is-idle",
+                  )}
+                  style={
+                    task
+                      ? ({ "--t0": task.started_at_ms, "--t1": task.finish_at_ms } as Vars)
+                      : undefined
+                  }
+                  disabled={task !== null || queued}
+                  onPointerDown={() => beginPress(station.id)}
+                  onPointerUp={endPress}
+                  onPointerLeave={endPress}
+                  onPointerCancel={endPress}
+                  onDoubleClick={(event) => {
+                    releaseFocus(event);
+                    openRecipePopover(station.id);
+                  }}
+                  onClick={(event) => {
+                    releaseFocus(event);
+                    if (longPressRef.current) {
+                      longPressRef.current = false;
+                      return;
+                    }
+                    quickStart(station.id);
+                  }}
+                >
+                  {task ? <span className="k-ring" aria-hidden="true" /> : null}
+                  <span className="k-station-emoji" aria-hidden="true">
+                    {stationEmoji(station.id)}
+                  </span>
+                  <span className="k-station-name">{stationLabel(station.id)}</span>
+                  {task ? (
+                    <>
+                      <span className="k-task">
+                        <span aria-hidden="true">{recipeEmoji(task.recipe_id)}</span>
+                        {recipeLabel(task.recipe_id)} ×{task.batches}
+                      </span>
+                      <span className="k-finish">⏱ {formatSimMs(task.finish_at_ms)} 出锅</span>
+                    </>
+                  ) : queued ? (
+                    <span className="k-idle">已排队 · 下一拍开工</span>
+                  ) : (
+                    <span className="k-idle">点我开工 👆</span>
+                  )}
+                </button>
+
+                {task === null && !queued ? (
+                  <button
+                    type="button"
+                    className="k-more"
+                    aria-label={`${stationLabel(station.id)} 选择配方`}
+                    onClick={(event) => {
+                      releaseFocus(event);
+                      openRecipePopover(station.id);
+                    }}
+                  >
+                    ⋯
+                  </button>
+                ) : null}
+
+                {task === null && !queued && hint ? (
+                  <button
+                    type="button"
+                    className={classList("k-repeat", repeatOk ? "" : "is-stale")}
+                    aria-label={`重复 ${stationLabel(station.id)} 上一次的 ${recipeLabel(hint.recipeId)} ×${hint.batches}`}
+                    disabled={!repeatOk}
+                    title={
+                      repeatOk
+                        ? `重复 ${recipeLabel(hint.recipeId)} ×${hint.batches}`
+                        : `原料不够再做一次 ${recipeLabel(hint.recipeId)} ×${hint.batches}`
+                    }
+                    onClick={(event) => repeatLast(station.id, event)}
+                  >
+                    🔁
+                  </button>
+                ) : null}
+              </div>
             );
           })}
         </section>
@@ -269,7 +484,7 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
           <section className="k-tray" aria-label="排队中的动作">
             <h3 className="k-side-title">排队中 ({flow.queue.length})</h3>
             {flow.queue.length === 0 ? (
-              <p className="k-muted">点工位开工、点小票交付；动作排在这里，下一拍自动执行。</p>
+              <p className="k-muted">点工位开工、点小票交付；动作排在这里，下一拍自动执行。排错了点 ✕ 取消。</p>
             ) : (
               <ul className="k-tray-list">
                 {flow.queue.map((entry) => (
@@ -329,7 +544,68 @@ export function GameScreen({ config, flow, onExit }: GameScreenProps): JSX.Eleme
         />
       ) : null}
 
-      {phase === "briefing" ? <StartOverlay onStart={flow.openDay} /> : null}
+      {coachStage !== "off" && phase === "briefing" ? (
+        <CoachOverlay onSkip={() => dismissCoach(false)} onStart={() => dismissCoach(true)} />
+      ) : null}
+      {phase === "briefing" && coachStage === "off" ? (
+        <StartOverlay onStart={flow.openDay} />
+      ) : null}
+    </div>
+  );
+}
+
+/** Three lines, one tap each, and a way out that always works. */
+function CoachOverlay({
+  onSkip,
+  onStart,
+}: {
+  onSkip: () => void;
+  onStart: () => void;
+}): JSX.Element {
+  return (
+    <div className="k-overlay" role="dialog" aria-label="新手上路">
+      <div className="k-overlay-card k-coach">
+        <span className="k-overlay-emoji" aria-hidden="true">
+          👩‍🍳
+        </span>
+        <h2>三步就会玩</h2>
+        <ol className="k-coach-list">
+          <li>
+            <b>① 点工位 = 开工</b>
+            <span>自动挑当下最该做的配方；想换就点角上的 ⋯、双击或长按。</span>
+          </li>
+          <li>
+            <b>② 小票自己飞进来</b>
+            <span>发亮的就说明库存够了，能整单交付。</span>
+          </li>
+          <li>
+            <b>③ 点小票 = 收钱</b>
+            <span>排错了就去右侧托盘点 ✕ 取消；🔁 可以重复上一个工位刚做的。</span>
+          </li>
+        </ol>
+        <div className="k-coach-actions">
+          <button
+            type="button"
+            className="k-cta ghost"
+            onClick={(event) => {
+              releaseFocus(event);
+              onSkip();
+            }}
+          >
+            跳过
+          </button>
+          <button
+            type="button"
+            className="k-cta big"
+            onClick={(event) => {
+              releaseFocus(event);
+              onStart();
+            }}
+          >
+            ▶ 开始营业
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -431,10 +707,12 @@ function CoinBursts({ bursts }: { bursts: readonly CoinBurst[] }): JSX.Element |
 
 function Hud({
   config,
+  botScoreMinor,
   flow,
   onExit,
 }: {
   config: PublicConfig;
+  botScoreMinor: number;
   flow: GameFlow;
   onExit: () => void;
 }): JSX.Element {
@@ -446,6 +724,8 @@ function Hud({
   // HUD and not only on the ticket.
   const shownRevenue = useCountUp(flow.folded.revenueMinor);
   const revenuePop = usePopKey(flow.folded.revenueMinor);
+  // Head to head with the greedy bot on this very stream.
+  const behind = botScoreMinor - flow.folded.revenueMinor;
   return (
     <header className="k-hud">
       <div className="k-hud-left">
@@ -464,7 +744,10 @@ function Hud({
         <span className="k-revenue" key={revenuePop}>
           <span aria-hidden="true">{COIN}</span> {formatMinor(shownRevenue)}
         </span>
-        <span className="k-muted">已交付 {flow.folded.deliveredOrders} 单</span>
+        <span className={classList("k-bot", behind <= 0 && "is-ahead")}>
+          bot {formatMinor(botScoreMinor)} ·{" "}
+          {behind > 0 ? `还差 ${formatMinor(behind)}` : `已超 bot +${formatMinor(-behind)}`}
+        </span>
       </div>
 
       <div className="k-hud-right">

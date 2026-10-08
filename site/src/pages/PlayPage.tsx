@@ -75,9 +75,10 @@ export function PlayPage(): JSX.Element {
       <section className="k-howto" aria-label="怎么玩">
         <h2 className="k-side-title">怎么玩</h2>
         <ol className="k-howto-list">
-          <li>目标——5 分钟营业时间内交付尽量多订单，只赚整单交付的钱。</li>
-          <li>循环——点空闲工位开工生产，再点小票交付；时间自己会往前跑。</li>
-          <li>订单不会过期，账面达成率与贪心 bot 参考分是你的及格线。</li>
+          <li>目标——5 分钟内交付尽量多订单；只赚整单交付的钱，订单不会过期。</li>
+          <li>点空闲工位就直接开工，系统自动挑当下最该做的配方；想换就点 ⋯、双击或长按。</li>
+          <li>小票会自己飞进来，发亮的点一下就收钱；🔁 重复上一手，排错了去托盘 ✕ 取消。</li>
+          <li>别输给贪心 bot —— 它的分数就在每张卡上。</li>
         </ol>
         <p className="k-muted small">键盘：空格 / 回车 = 暂停与继续。</p>
       </section>
@@ -90,7 +91,7 @@ export function PlayPage(): JSX.Element {
             const best = state.bests[summary.tier];
             const beatGreedy =
               best !== undefined && summary.greedy_score_minor > 0
-                ? best >= summary.greedy_score_minor
+                ? best > summary.greedy_score_minor
                 : null;
             return (
               <a className="k-card" key={summary.tier} href={href(`/play/${summary.tier}`)}>

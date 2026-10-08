@@ -1,4 +1,4 @@
-import type { Action, ActionResult, LotQty, Observation } from "@kitchensched/game";
+import type { Action, ActionResult, LotQty, Observation, Recipe } from "@kitchensched/game";
 import type { ActionCode } from "@kitchensched/contracts";
 
 import type { ReplayEvent } from "../replay/reducer";
@@ -113,8 +113,48 @@ export function labelsOf(queue: readonly QueuedAction[]): Record<string, string>
   return labels;
 }
 
-/* ---------------------------- step geometry ------------------------------ */
+/* ---------------------------- smart defaults ----------------------------- */
 
+/**
+ * One tap queues one committed action, so the tile has to choose for the
+ * player. Everything the choice needs is precomputed by the caller (which owns
+ * the stock and the tickets), keeping the decision itself pure and testable.
+ */
+export interface RecipeCandidate {
+  recipe: Recipe;
+  /** Largest batch the pantry can feed; 0 means not craftable at any size. */
+  affordableBatches: number;
+  /** True when one of the recipe's outputs is on an outstanding ticket. */
+  wanted: boolean;
+}
+
+/**
+ * The recipe a plain tap should fire: something a ticket is waiting for first,
+ * then the biggest batch the shelf can feed, then config order. Returns null
+ * when nothing is craftable — the caller opens the popover in that case, whose
+ * "缺 …" hints are the actual answer.
+ */
+export function pickSmartRecipe(
+  candidates: readonly RecipeCandidate[],
+): RecipeCandidate | null {
+  let best: RecipeCandidate | null = null;
+  for (const candidate of candidates) {
+    if (candidate.affordableBatches < 1) continue;
+    if (best === null) {
+      best = candidate;
+      continue;
+    }
+    if (candidate.wanted !== best.wanted) {
+      if (candidate.wanted) best = candidate;
+      continue;
+    }
+    if (candidate.affordableBatches > best.affordableBatches) best = candidate;
+    // a tie keeps the earlier recipe, i.e. config order
+  }
+  return best;
+}
+
+/* ---------------------------- step geometry ------------------------------ */
 export interface StepWindow {
   fromMs: number;
   toMs: number;

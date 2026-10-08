@@ -1364,7 +1364,206 @@
   }
 }
 
-/* ----------------------------- reduced motion --------------------------- */
+/* --------------------------- station extras ------------------------------ */
+
+/* The tile is now a cell with corner affordances; the tile itself keeps its
+   button semantics and its data-station-id hook. */
+.k-station-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.k-more,
+.k-repeat {
+  position: absolute;
+  top: 4px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--k-ink);
+  background: #fff;
+  border: 2px solid var(--k-ink);
+  border-radius: 9px;
+  box-shadow: 2px 2px 0 rgba(43, 33, 24, 0.25);
+  cursor: pointer;
+  transition: transform 0.12s var(--k-pop);
+}
+
+.k-more {
+  right: 4px;
+}
+
+.k-repeat {
+  left: 4px;
+  background: var(--k-mustard);
+  animation: k-nudge 1.6s var(--k-pop) infinite;
+}
+
+.k-more:hover,
+.k-repeat:hover:not(:disabled) {
+  transform: translate(-1px, -1px) scale(1.08);
+}
+
+.k-repeat:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  animation: none;
+}
+
+.k-repeat.is-stale {
+  background: #e9e2d4;
+}
+
+@keyframes k-nudge {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(-14deg);
+  }
+  90% {
+    transform: rotate(12deg);
+  }
+}
+
+/* ------------------------------ head to head ----------------------------- */
+
+.k-bot {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--k-ink-soft);
+  padding: 1px 9px;
+  border: 2px solid var(--k-border-dim, rgba(43, 33, 24, 0.25));
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.k-bot.is-ahead {
+  color: #1f6b3f;
+  background: rgba(76, 175, 109, 0.22);
+  border-color: var(--k-lettuce);
+}
+
+.k-race {
+  width: 100%;
+  margin: 10px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.k-race-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 76px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.k-race-name {
+  color: var(--k-ink-soft);
+  font-weight: 700;
+  text-align: left;
+}
+
+.k-race-bar {
+  height: 16px;
+  background: #fff;
+  border: 2px solid var(--k-ink);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.k-race-bar > i {
+  display: block;
+  height: 100%;
+  transition: width 0.7s var(--k-pop);
+}
+
+.k-race-bar > i.is-you {
+  background: var(--k-ketchup);
+}
+
+.k-race-bar > i.is-bot {
+  background: var(--k-clock);
+}
+
+.k-race-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.k-race-delta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--k-ink-soft);
+}
+
+/* ------------------------------ coach marks ------------------------------ */
+
+.k-coach-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.k-coach-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 2px solid var(--k-ink);
+  border-radius: 12px;
+}
+
+.k-coach-list b {
+  font-size: 13.5px;
+}
+
+.k-coach-list span {
+  font-size: 12px;
+  color: var(--k-ink-soft);
+}
+
+.k-coach-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+[data-coach="station"],
+[data-coach="ticket"] {
+  animation: k-coach 1.5s ease-in-out infinite;
+}
+
+@keyframes k-coach {
+  0%,
+  100% {
+    box-shadow: var(--k-shadow), 0 0 0 0 rgba(255, 197, 61, 0.9);
+  }
+  50% {
+    box-shadow: var(--k-shadow), 0 0 0 7px rgba(255, 197, 61, 0);
+  }
+}
+
+/* ------------------------------ reduced motion --------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   .play-root *,
@@ -1377,6 +1576,13 @@
   /* Coins and the roll-up are JS-gated too; this is the belt to that braces. */
   .k-coin {
     display: none;
+  }
+
+  /* The coach still has to point at the next thing — with a still outline. */
+  [data-coach="station"],
+  [data-coach="ticket"] {
+    outline: 3px solid var(--k-mustard);
+    outline-offset: 2px;
   }
 }
 

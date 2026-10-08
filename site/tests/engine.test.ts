@@ -1,27 +1,30 @@
 import { describe, expect, it } from "vitest";
-import type { Action, EventRecord, LotQty, Order } from "@kitchensched/game";
+import type { Action, EventRecord, LotQty, Order, Recipe } from "@kitchensched/game";
 
 import {
+  BASE_SIM_PER_REAL_SECOND,
+  MAX_STEP_REAL_MS,
   decisionFor,
   dequeue,
   durationRealMs,
   enqueue,
   labelsOf,
+  pickSmartRecipe,
   queuedOrderIds,
   queuedStationIds,
   reservationsOf,
   revealedCount,
   simTimeAt,
   stepWindow,
-  BASE_SIM_PER_REAL_SECOND,
-  MAX_STEP_REAL_MS,
   type QueuedAction,
+  type RecipeCandidate,
 } from "../src/play/engine";
 
 /**
  * The engine's pure half. These are the rules that make the real-time game
  * fair: a queued action can never spend stock another queued action already
- * promised, and the clock maths never lies about where the sim is.
+ * promised, the clock maths never lies about where the sim is, and a plain tap
+ * always lands on the recipe an open ticket is actually waiting for.
  */
 
 const startAction = (actionId: string, stationId: string): Action => ({
@@ -94,6 +97,60 @@ describe("queue reservations", () => {
 
   it("submits a bare clock advance when the player queued nothing", () => {
     expect(decisionFor([])).toEqual({ actions: [], wake_at_ms: null });
+  });
+});
+
+const recipe = (id: string): Recipe => ({ id, name: id, inputs: [], outputs: [], station_options: [] });
+
+const candidate = (
+  id: string,
+  affordableBatches: number,
+  wanted: boolean,
+): RecipeCandidate => ({ recipe: recipe(id), affordableBatches, wanted });
+
+describe("pickSmartRecipe", () => {
+  it("returns null when nothing is craftable, so the tile can explain why", () => {
+    expect(pickSmartRecipe([candidate("a", 0, false), candidate("b", 0, true)])).toBeNull();
+    expect(pickSmartRecipe([])).toBeNull();
+  });
+
+  it("prefers a recipe an open ticket is waiting for", () => {
+    const pick = pickSmartRecipe([
+      candidate("fries", 4, false),
+      candidate("sandwich", 1, true),
+    ]);
+    expect(pick?.recipe.id).toBe("sandwich");
+  });
+
+  it("falls back to the first feasible recipe when nothing feeds a ticket", () => {
+    const pick = pickSmartRecipe([candidate("fries", 4, false), candidate("bun", 2, false)]);
+    expect(pick?.recipe.id).toBe("fries");
+  });
+
+  it("takes the largest affordable batch among equally wanted recipes", () => {
+    const pick = pickSmartRecipe([
+      candidate("small", 1, true),
+      candidate("big", 3, true),
+    ]);
+    expect(pick?.recipe.id).toBe("big");
+    expect(pick?.affordableBatches).toBe(3);
+  });
+
+  it("keeps config order when everything else ties", () => {
+    const pick = pickSmartRecipe([
+      candidate("first", 2, true),
+      candidate("second", 2, true),
+      candidate("third", 2, true),
+    ]);
+    expect(pick?.recipe.id).toBe("first");
+  });
+
+  it("never picks an infeasible recipe just because it is wanted", () => {
+    const pick = pickSmartRecipe([
+      candidate("wanted_but_broke", 0, true),
+      candidate("plain_but_works", 1, false),
+    ]);
+    expect(pick?.recipe.id).toBe("plain_but_works");
   });
 });
 

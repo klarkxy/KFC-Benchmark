@@ -23,7 +23,14 @@ export interface EndScreenProps {
   onDownload: () => void;
 }
 
+/** Bar length against the day's full book, so both rows share one scale. */
+function barWidth(value: number | null, book: number): number {
+  if (value === null || book <= 0) return 0;
+  return Math.max(2, Math.min(100, (value / book) * 100));
+}
+
 /** 🏆 perfect day, 🥇 beat the bot, 🥈 half the book, 🥉 a rough shift. */
+
 export function medalFor(score: number | null, book: number, greedy: number): { icon: string; text: string } {
   if (score === null || book <= 0) return { icon: "🥉", text: "今天颗粒无收" };
   const ratio = score / book;
@@ -96,6 +103,30 @@ export function EndScreen({
         <p className="k-muted small">
           {COIN} 账面 {formatMinor(book)} · 达成 {score === null ? "—" : formatPercent(score, book)}
         </p>
+
+        <div className="k-race" aria-label="与贪心 bot 的对比">
+          <div className="k-race-row">
+            <span className="k-race-name">你</span>
+            <div className="k-race-bar">
+              <i className="is-you" style={{ width: `${barWidth(score, book)}%` }} />
+            </div>
+            <b className="k-race-value">{formatMinor(score)}</b>
+          </div>
+          <div className="k-race-row">
+            <span className="k-race-name">贪心 bot</span>
+            <div className="k-race-bar">
+              <i className="is-bot" style={{ width: `${barWidth(greedy, book)}%` }} />
+            </div>
+            <b className="k-race-value">{formatMinor(greedy)}</b>
+          </div>
+          <p className="k-race-delta">
+            {delta === null
+              ? "今天颗粒无收"
+              : delta >= 0
+                ? `你比 bot 多赚了 ${formatMinor(Math.abs(delta))}`
+                : `比 bot 少赚 ${formatMinor(Math.abs(delta))}`}
+          </p>
+        </div>
 
         <ul className="k-end-rows">
           <li>

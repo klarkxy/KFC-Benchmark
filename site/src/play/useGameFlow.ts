@@ -75,6 +75,12 @@ export interface CoinBurst {
   y: number;
 }
 
+/** What a station last made, so 🔁 can repeat it. */
+export interface RepeatHint {
+  recipeId: string;
+  batches: number;
+}
+
 export interface GameFlow {
   folded: ReplayState;
   /**
@@ -87,6 +93,8 @@ export interface GameFlow {
   openOrders: readonly Order[];
   queue: readonly QueuedAction[];
   reservations: ReadonlyMap<string, number>;
+  /** station_id -> what it last finished, for the 🔁 chip. */
+  repeat: ReadonlyMap<string, RepeatHint>;
   phase: Phase;
   /** True while a popover holds the flow (the player is thinking). */
   interacting: boolean;
@@ -105,7 +113,7 @@ export interface GameFlow {
   setSpeed: (speed: Speed) => void;
   /** A popover is open: the flow waits so the player is never rushed. */
   setInteracting: (value: boolean) => void;
-  queueStart: (recipe: Recipe, stationId: string, batches: number) => boolean;
+  queueStart: (recipe: Recipe, stationId: string, batches: number, hint?: string) => boolean;
   queueDeliver: (order: Order) => boolean;
   /** An impossible tap: shake the target and say exactly what is missing. */
   notifyMissing: (missing: string) => void;
@@ -137,6 +145,7 @@ export function useGameFlow(session: GameSession): GameFlow {
   const [banner, setBanner] = useState<BannerState | null>(null);
   const [delivered, setDelivered] = useState<DeliveredTicket[]>([]);
   const [bursts, setBursts] = useState<CoinBurst[]>([]);
+  const [repeat, setRepeat] = useState<ReadonlyMap<string, RepeatHint>>(new Map());
   const [done, setDone] = useState<RunOutput | null>(null);
 
   const sessionRef = useRef(session);
@@ -232,7 +241,13 @@ export function useGameFlow(session: GameSession): GameFlow {
       if (event.type === "order_arrived") {
         pushToast("info", `🔔 新订单 ${event.payload.order.id} 到了`);
       } else if (event.type === "task_completed") {
-        pushToast("ok", `叮！${recipeLabel(event.payload.task.recipe_id)} 出锅了`);
+        const task = event.payload.task;
+        setRepeat((current) => {
+          const next = new Map(current);
+          next.set(task.station_id, { recipeId: task.recipe_id, batches: task.batches });
+          return next;
+        });
+        pushToast("ok", `叮！${recipeLabel(task.recipe_id)} 出锅了`);
       } else if (event.type === "order_delivered") {
         const order = ordersById.get(event.payload.order_id);
         if (order) {
@@ -363,7 +378,7 @@ export function useGameFlow(session: GameSession): GameFlow {
   }, []);
 
   const queueStart = useCallback(
-    (recipe: Recipe, stationId: string, batches: number): boolean => {
+    (recipe: Recipe, stationId: string, batches: number, hint?: string): boolean => {
       const current = sessionRef.current;
       if (current.observation?.final) return false;
       if (queuedStationIds(queueRef.current).has(stationId)) return false;
@@ -389,7 +404,7 @@ export function useGameFlow(session: GameSession): GameFlow {
       };
       queueRef.current = enqueue(queueRef.current, entry);
       setQueue(queueRef.current);
-      pushToast("info", `已排队 ${entry.label}`);
+      pushToast("info", `已排队 ${entry.label}${hint === undefined ? "" : `（${hint}）`}`);
       return true;
     },
     [pushToast],
@@ -472,6 +487,7 @@ export function useGameFlow(session: GameSession): GameFlow {
     openOrders,
     queue,
     reservations,
+    repeat,
     phase,
     interacting,
     speed,
