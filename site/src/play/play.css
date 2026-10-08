@@ -1373,6 +1373,12 @@
   min-width: 0;
 }
 
+/* A <button> shrink-to-fits even as a flex container, so it must be told to
+   take the whole track; otherwise the grid cells read as wide gaps. */
+.k-station-wrap > .k-station {
+  width: 100%;
+}
+
 .k-more,
 .k-repeat {
   position: absolute;
@@ -1508,7 +1514,70 @@
   color: var(--k-ink-soft);
 }
 
-/* ------------------------------ coach marks ------------------------------ */
+/* --------------------------- generated art ------------------------------- */
+
+/* The station tile keeps its emoji box; art sits inside it at a fixed size so
+   swapping in a PNG (or landing one late) never nudges the grid. */
+.k-station-emoji {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+}
+
+.k-station-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Kitchen backdrop, behind the tiles and deliberately quiet: the art is
+   atmosphere, the tiles carry the information. */
+.k-floor {
+  position: relative;
+  isolation: isolate;
+}
+
+.k-floor::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--k-backdrop);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.16;
+  border-radius: calc(var(--k-radius) - 2px);
+  pointer-events: none;
+}
+
+.k-floor > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Picker banner. The aspect-ratio holds the space before the image decodes. */
+.k-hero {
+  margin: 0;
+  padding: 10px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: 20px;
+  box-shadow: var(--k-shadow);
+  overflow: hidden;
+}
+
+.k-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1600 / 533;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ---------------------------- coach marks ------------------------------ */
 
 .k-coach-list {
   list-style: none;

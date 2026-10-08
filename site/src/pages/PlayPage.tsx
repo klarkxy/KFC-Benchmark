@@ -4,6 +4,7 @@ import { DIFFICULTY_LABELS } from "../lib/labels";
 import { readBest, loadScenarioIndex, type ScenarioSummary } from "../lib/scenarios";
 import { href } from "../router";
 import { COIN } from "../play/icons";
+import { PICKER_HERO } from "../play/art";
 
 type LoadState =
   | { status: "loading" }
@@ -71,6 +72,10 @@ export function PlayPage(): JSX.Element {
           ← 返回榜单
         </a>
       </header>
+
+      <figure className="k-hero">
+        <img src={PICKER_HERO} width={1600} height={533} alt="快餐厨房出品：炸薯、汉堡、卷饼与套餐" />
+      </figure>
 
       <section className="k-howto" aria-label="怎么玩">
         <h2 className="k-side-title">怎么玩</h2>

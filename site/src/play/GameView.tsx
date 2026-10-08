@@ -22,6 +22,7 @@ import {
   ticketTilt,
 } from "./icons";
 import { releaseFocus } from "./interaction";
+import { KITCHEN_BACKDROP, stationArt } from "./art";
 import type { CoinBurst, GameFlow } from "./useGameFlow";
 
 
@@ -259,7 +260,11 @@ export function GameScreen({ config, botScoreMinor, flow, onExit }: GameScreenPr
     if (thenOpen) flow.openDay();
   };
 
-  const rootVars: Vars = { "--day-end": config.end_at_ms };
+  const rootVars: Vars = {
+    "--day-end": config.end_at_ms,
+    "--k-backdrop": `url("${KITCHEN_BACKDROP}")`,
+  };
+
 
   return (
     <div
@@ -360,6 +365,7 @@ export function GameScreen({ config, botScoreMinor, flow, onExit }: GameScreenPr
             const queued = queuedStations.has(station.id);
             const hint = flow.repeat.get(station.id);
             const repeatOk = task === null && !queued && canRepeat(station.id);
+            const art = stationArt(station.id);
             return (
               <div
                 key={station.id}
@@ -402,8 +408,19 @@ export function GameScreen({ config, botScoreMinor, flow, onExit }: GameScreenPr
                   }}
                 >
                   {task ? <span className="k-ring" aria-hidden="true" /> : null}
-                  <span className="k-station-emoji" aria-hidden="true">
-                    {stationEmoji(station.id)}
+                  <span className="k-station-emoji">
+                    {art ? (
+                      <img
+                        className="k-station-art"
+                        src={art.src}
+                        width={art.width}
+                        height={art.height}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <span aria-hidden="true">{stationEmoji(station.id)}</span>
+                    )}
                   </span>
                   <span className="k-station-name">{stationLabel(station.id)}</span>
                   {task ? (
