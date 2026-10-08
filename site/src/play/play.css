@@ -1,0 +1,1434 @@
+/* ==========================================================================
+   play/ — the sticker kitchen.
+
+   A deliberately different language from styles.css (the engineering
+   console): chunky 2.5px ink outlines, hard offset shadows, bounce easing,
+   pure emoji art, zero asset files. Everything is scoped under `.play-root`
+   so the leaderboard / methodology / replay pages are untouched.
+   ========================================================================== */
+
+.play-root {
+  --k-tile: #e8f4f0;
+  --k-grid: rgba(43, 33, 24, 0.07);
+  --k-ink: #2b2118;
+  --k-ketchup: #e8452c;
+  --k-mustard: #ffc53d;
+  --k-lettuce: #4caf6d;
+  --k-cream: #fff4dc;
+  --k-clock: #3d5a80;
+  --k-ink-soft: rgba(43, 33, 24, 0.58);
+  --k-line: 2.5px solid var(--k-ink);
+  --k-radius: 16px;
+  --k-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --k-shadow: 4px 4px 0 rgba(43, 33, 24, 0.18);
+  --k-shadow-hard: 4px 4px 0 var(--k-ink);
+  /* Written per frame by the engine: the only thing that changes 60×/second. */
+  --sim-now: 0;
+  --day-end: 1;
+
+  color: var(--k-ink);
+  position: relative;
+  font-weight: 500;
+}
+
+/* The play pages get a bright floor instead of the console background, and it
+   has to reach the bottom of the viewport — otherwise the kitchen floats on a
+   strip of light with the dark console showing underneath.
+   The two colours are literals, not --k-*: those tokens are declared on
+   `.play-root`, which is a DESCENDANT of `.content`, so a var() here would
+   resolve to nothing and paint nothing. */
+.content:has(.k-game),
+.content:has(.k-picker),
+.content:has(.k-end),
+.content:has(.k-note) {
+  min-height: calc(100vh - 158px);
+  background-color: #e8f4f0;
+  background-image:
+    linear-gradient(45deg, rgba(43, 33, 24, 0.07) 25%, transparent 25%, transparent 75%, rgba(43, 33, 24, 0.07) 75%),
+    linear-gradient(45deg, rgba(43, 33, 24, 0.07) 25%, transparent 25%, transparent 75%, rgba(43, 33, 24, 0.07) 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+.play-root a {
+  color: var(--k-clock);
+}
+
+.play-root code {
+  background: rgba(43, 33, 24, 0.09);
+  color: var(--k-ink);
+}
+
+.play-root .k-muted {
+  color: var(--k-ink-soft);
+}
+
+.play-root .k-display {
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-root .k-side-title,
+.play-root .k-rail-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.play-root .small {
+  font-size: 12px;
+}
+
+/* --------------------------------- notes -------------------------------- */
+
+.k-note {
+  margin: 24px auto;
+  max-width: 640px;
+  padding: 20px 24px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-note.is-bad {
+  background: #ffe3df;
+}
+
+/* -------------------------------- buttons ------------------------------- */
+
+.k-cta,
+.k-icon-btn,
+.k-speed {
+  font-family: inherit;
+  font-weight: 800;
+  color: #fff;
+  background: var(--k-ketchup);
+  border: var(--k-line);
+  border-radius: 12px;
+  box-shadow: var(--k-shadow-hard);
+  cursor: pointer;
+  transition:
+    transform 0.12s var(--k-pop),
+    box-shadow 0.12s var(--k-pop);
+}
+
+.k-cta {
+  padding: 9px 20px;
+  font-size: 15px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.k-cta.big {
+  font-size: 20px;
+  padding: 14px 30px;
+  border-radius: 18px;
+}
+
+.k-cta.wide {
+  width: 100%;
+  justify-content: center;
+}
+
+.k-cta.ghost {
+  color: var(--k-ink);
+  background: var(--k-cream);
+}
+
+.k-cta:hover:not(:disabled),
+.k-icon-btn:hover:not(:disabled),
+.k-speed:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--k-ink);
+}
+
+.k-cta:active:not(:disabled),
+.k-icon-btn:active:not(:disabled),
+.k-speed:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--k-ink);
+}
+
+.k-cta:disabled,
+.k-icon-btn:disabled,
+.k-speed:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: 2px 2px 0 rgba(43, 33, 24, 0.35);
+}
+
+.k-icon-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  font-size: 15px;
+  color: var(--k-ink);
+  background: var(--k-cream);
+}
+
+.k-speed {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--k-ink);
+  background: var(--k-cream);
+  border-radius: 10px;
+}
+
+.k-speed.is-on {
+  background: var(--k-mustard);
+}
+
+.k-x {
+  border: none;
+  background: transparent;
+  color: var(--k-ink-soft);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 2px 6px;
+}
+
+.k-x:hover {
+  color: var(--k-ketchup);
+}
+
+/* ---------------------------------- HUD --------------------------------- */
+
+.k-game {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.k-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 260px;
+  flex: 1;
+}
+
+.k-hud-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.k-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.k-clock-wrap {
+  flex: 1;
+  min-width: 120px;
+}
+
+.k-clock {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--k-clock);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.k-clock-cap {
+  font-size: 12px;
+  color: var(--k-ink-soft);
+}
+
+.k-revenue {
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Day progress: width is driven by --sim-now, so it moves every frame. */
+.k-bar {
+  margin-top: 6px;
+  height: 14px;
+  background: #fff;
+  border: var(--k-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.k-bar > i {
+  display: block;
+  height: 100%;
+  width: calc(var(--sim-now) / max(1, var(--day-end)) * 100%);
+  background: linear-gradient(90deg, var(--k-mustard), var(--k-ketchup));
+}
+
+.k-speeds {
+  display: flex;
+  gap: 4px;
+}
+
+/* ------------------------------ ticket rail ----------------------------- */
+
+.k-rail-wrap {
+  padding: 12px 14px 6px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-rail-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.k-rail {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 14px 4px 16px;
+  min-height: 132px;
+  align-items: flex-start;
+}
+
+.k-rail-empty {
+  margin: 8px 0;
+  color: var(--k-ink-soft);
+}
+
+/* The one memorable element: hand-pinned paper tickets. */
+.k-ticket {
+  position: relative;
+  flex: 0 0 auto;
+  width: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 10px 8px;
+  text-align: left;
+  font-family: inherit;
+  color: var(--k-ink);
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: 12px;
+  box-shadow: var(--k-shadow);
+  transform: rotate(var(--tilt, 0deg));
+  transform-origin: top center;
+  animation: k-drop 0.55s var(--k-pop) both;
+  cursor: pointer;
+  transition:
+    transform 0.14s var(--k-pop),
+    box-shadow 0.14s var(--k-pop);
+}
+
+.k-ticket::after {
+  /* torn paper edge */
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--k-ink) 0 4px,
+    transparent 4px 9px
+  );
+  opacity: 0.35;
+}
+
+.k-pin {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: var(--k-ketchup);
+  border: 2.5px solid var(--k-ink);
+}
+
+.k-customer {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 20px;
+}
+
+.k-ticket-id {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--k-ink-soft);
+  text-align: right;
+}
+
+.k-ticket-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.k-ticket-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  background: #fff;
+  border: 2px solid var(--k-ink);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* The badge is what makes two lines on one ticket tellably different: emoji
+   alone gives three burgers the same 🍔. */
+.k-badge {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--k-clock);
+  background: var(--k-mustard);
+  border: 1.5px solid var(--k-ink);
+  border-radius: 6px;
+  padding: 0 4px;
+}
+
+.k-ticket-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12px;
+}
+
+.k-money {
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.k-ticket.is-ready {
+  background: #eafbe9;
+  border-color: var(--k-lettuce);
+}
+
+.k-ticket.is-ready:hover {
+  transform: rotate(0deg) translate(-3px, -3px) scale(1.03);
+  box-shadow: 7px 7px 0 var(--k-lettuce);
+}
+
+.k-ticket.is-queued {
+  background: #fff;
+  border-style: dashed;
+}
+
+.k-ticket.is-delivered {
+  animation: k-stamp 1.1s var(--k-pop) both;
+  pointer-events: none;
+}
+
+.k-ticket.is-shake {
+  animation: k-shake 0.45s ease-in-out;
+}
+
+.k-stamp {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-11deg);
+  padding: 3px 12px;
+  border: 3px solid currentColor;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.k-stamp.queued {
+  color: var(--k-ketchup);
+  background: rgba(255, 244, 220, 0.85);
+}
+
+.k-stamp.done {
+  color: var(--k-lettuce);
+  background: rgba(255, 244, 220, 0.92);
+  animation: k-pop-in 0.4s var(--k-pop) both;
+}
+
+.k-stamp.new {
+  position: static;
+  transform: none;
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--k-ketchup);
+  animation: k-pop-in 0.5s var(--k-pop) 0.5s both;
+}
+
+/* -------------------------------- floor ---------------------------------- */
+
+.k-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: start;
+}
+
+.k-floor {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+  padding: 14px;
+  background: var(--k-tile);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-station {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 116px;
+  padding: 12px 8px;
+  font-family: inherit;
+  color: var(--k-ink);
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.14s var(--k-pop),
+    box-shadow 0.14s var(--k-pop);
+}
+
+.k-station.is-idle:hover {
+  transform: translate(-3px, -3px) rotate(-1deg);
+  box-shadow: 7px 7px 0 var(--k-ketchup);
+}
+
+.k-station.is-idle:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(43, 33, 24, 0.2);
+}
+
+.k-station-emoji {
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.k-station-name {
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.k-task,
+.k-finish,
+.k-idle {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.k-idle {
+  color: var(--k-ink-soft);
+}
+
+.k-station.is-queued {
+  border-style: dashed;
+  background: #fff;
+}
+
+/* Cooking: the tile wobbles and steams. */
+.k-station.is-busy {
+  background: #fff6e0;
+  border-color: var(--k-ketchup);
+  animation: k-wobble 1.15s ease-in-out infinite;
+}
+
+.k-station.is-busy::before,
+.k-station.is-busy::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid rgba(43, 33, 24, 0.18);
+  animation: k-steam 1.7s ease-out infinite;
+}
+
+.k-station.is-busy::before {
+  left: 22%;
+}
+
+.k-station.is-busy::after {
+  left: 46%;
+  animation-delay: 0.45s;
+}
+
+/* Progress ring: angle is pure CSS math over --sim-now / --t0 / --t1. */
+.k-ring {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2.5px solid var(--k-ink);
+  background: conic-gradient(
+    from -90deg,
+    var(--k-ketchup) calc(clamp(0, (var(--sim-now) - var(--t0)) / max(1, var(--t1) - var(--t0)), 1) * 360deg),
+    rgba(43, 33, 24, 0.12) 0
+  );
+}
+
+.k-ring::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #fff6e0;
+}
+
+/* ------------------------------- side rail ------------------------------- */
+
+.k-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.k-pantry,
+.k-tray {
+  padding: 12px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.k-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: #fff;
+  border: 2.5px solid var(--k-ink);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s var(--k-pop);
+}
+
+.k-chip b {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------- payouts -------------------------------- */
+
+/* Coins launched from a paid ticket, arcing into the revenue counter. */
+.k-coin {
+  position: fixed;
+  left: var(--x);
+  top: var(--y);
+  z-index: 44;
+  font-size: 22px;
+  pointer-events: none;
+  animation: k-fly 860ms cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+  animation-delay: calc(var(--i) * 42ms);
+}
+
+@keyframes k-fly {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.3);
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* The counter pops on every payout, on top of the roll-up in useCountUp. */
+.k-revenue {
+  display: inline-block;
+  animation: k-cash 420ms var(--k-pop);
+}
+
+@keyframes k-cash {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.28) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.k-chip.is-hit {
+  background: var(--k-lettuce);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.k-chip.is-dim {
+  opacity: 0.32;
+}
+
+.k-tray-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.k-tray-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #fff;
+  border: 2px dashed var(--k-ink);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  animation: k-pop-in 0.3s var(--k-pop) both;
+}
+
+/* ------------------------------- popover -------------------------------- */
+
+/* Anchored to a station tile, but never taller than the viewport: the recipe
+   list scrolls and the stepper + CTA stay pinned in a non-shrinking footer, so
+   开工 is reachable even for the packager's four-recipe card. */
+.k-popover {
+  position: fixed;
+  z-index: 40;
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 14px 14px 10px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 var(--k-ink);
+  animation: k-pop-in 0.24s var(--k-pop) both;
+}
+
+/* First paint is a measurement pass: laid out (so it can be measured) but
+   invisible, and the bounce only starts once it has been placed. */
+.k-popover.is-measuring {
+  visibility: hidden;
+  animation: none;
+  top: 0;
+  left: 0;
+}
+
+.k-pop-foot {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 2px dashed rgba(43, 33, 24, 0.25);
+}
+
+.k-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.k-pop-title {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.k-recipe-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0 2px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* the only part that scrolls; min-height lets it shrink inside the column */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.k-recipe {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--k-ink);
+  background: #fff;
+  border: 2.5px solid var(--k-ink);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.12s var(--k-pop);
+}
+
+.k-recipe:hover {
+  transform: translate(-2px, -2px);
+}
+
+.k-recipe.is-on {
+  background: var(--k-mustard);
+  box-shadow: 3px 3px 0 var(--k-ink);
+}
+
+.k-recipe.is-short {
+  opacity: 0.55;
+}
+
+.k-recipe-emoji {
+  font-size: 22px;
+}
+
+.k-recipe-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.k-recipe-meta {
+  text-align: right;
+  color: var(--k-ink-soft);
+  white-space: nowrap;
+}
+
+.k-recipe.is-on .k-recipe-meta {
+  color: rgba(43, 33, 24, 0.7);
+}
+
+.k-recipe-missing {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--k-ketchup);
+}
+
+.k-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 6px 0 10px;
+}
+
+.k-step {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--k-ink);
+  background: #fff;
+  border: var(--k-line);
+  border-radius: 12px;
+  box-shadow: var(--k-shadow-hard);
+  cursor: pointer;
+}
+
+.k-step:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--k-ink);
+}
+
+.k-step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.k-step-value {
+  min-width: 62px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.k-step-value b {
+  font-size: 22px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------- toasts -------------------------------- */
+
+.k-toasts {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.k-toast {
+  max-width: 300px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  color: var(--k-ink);
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: 12px;
+  box-shadow: var(--k-shadow);
+  cursor: pointer;
+  animation: k-pop-in 0.28s var(--k-pop) both;
+}
+
+.k-toast.is-bad {
+  background: #ffe3df;
+}
+
+.k-toast.is-ok {
+  background: #eafbe9;
+}
+
+/* ------------------------------- overlays ------------------------------- */
+
+.k-banner {
+  position: fixed;
+  top: 26%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 46;
+  padding: 14px 40px;
+  font-size: 40px;
+  font-weight: 900;
+  color: #fff;
+  background: var(--k-ketchup);
+  border: 3px solid var(--k-ink);
+  border-radius: 20px;
+  box-shadow: 8px 8px 0 rgba(43, 33, 24, 0.35);
+  animation: k-banner 2.2s var(--k-pop) both;
+  pointer-events: none;
+}
+
+.k-banner.is-final {
+  background: var(--k-clock);
+}
+
+.k-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(43, 33, 24, 0.45);
+}
+
+.k-overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 380px;
+  padding: 28px 32px;
+  text-align: center;
+  background: var(--k-cream);
+  border: 3px solid var(--k-ink);
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 rgba(43, 33, 24, 0.4);
+  animation: k-pop-in 0.35s var(--k-pop) both;
+}
+
+.k-overlay-emoji {
+  font-size: 54px;
+}
+
+.k-overlay-card h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.k-settle-bar {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+  animation: k-pop-in 0.3s var(--k-pop) both;
+}
+
+/* ------------------------------- the picker ----------------------------- */
+
+.k-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.k-title {
+  margin: 0 0 4px;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.k-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.k-howto {
+  padding: 14px 18px;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+}
+
+.k-howto-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13.5px;
+}
+
+.k-howto-list li::marker {
+  color: var(--k-ketchup);
+  font-weight: 900;
+}
+
+.k-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+.k-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  color: var(--k-ink);
+  text-decoration: none;
+  background: var(--k-cream);
+  border: var(--k-line);
+  border-radius: 20px;
+  box-shadow: var(--k-shadow);
+  transition:
+    transform 0.16s var(--k-pop),
+    box-shadow 0.16s var(--k-pop);
+}
+
+.k-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--k-ketchup);
+  text-decoration: none;
+}
+
+.k-card:hover .k-cta {
+  animation: k-wiggle 0.6s var(--k-pop) infinite;
+}
+
+.k-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.k-card-art {
+  font-size: 40px;
+}
+
+.k-card-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.k-tag {
+  display: inline-block;
+  padding: 1px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--k-ink);
+  background: var(--k-mustard);
+  border: 2px solid var(--k-ink);
+  border-radius: 999px;
+}
+
+.k-card-stats,
+.k-card-money {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.k-card-stats {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #fff;
+  border: 2.5px solid var(--k-ink);
+  border-radius: 12px;
+}
+
+.k-card-stats b,
+.k-card-money b {
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+
+.k-card-money li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 3px;
+  border-bottom: 2px dotted rgba(43, 33, 24, 0.2);
+}
+
+.k-card-money li > span {
+  color: var(--k-ink-soft);
+}
+
+/* ------------------------------- end screen ----------------------------- */
+
+.k-end {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+  padding: 20px 0;
+}
+
+.k-end-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(520px, 100%);
+  padding: 26px 30px;
+  text-align: center;
+  background: var(--k-cream);
+  border: 3px solid var(--k-ink);
+  border-radius: 22px;
+  box-shadow: 8px 8px 0 var(--k-mustard);
+  animation: k-pop-in 0.4s var(--k-pop) both;
+}
+
+.k-end-card h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.k-end-medal {
+  font-size: 60px;
+  animation: k-pop-in 0.5s var(--k-pop) 0.15s both;
+}
+
+.k-end-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.k-end-score .k-display {
+  font-size: 46px;
+  line-height: 1;
+  color: var(--k-ketchup);
+}
+
+.k-end-rows {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.k-end-rows li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 2px;
+  border-bottom: 2px dotted rgba(43, 33, 24, 0.18);
+}
+
+.k-end-rows b {
+  font-variant-numeric: tabular-nums;
+}
+
+.k-delta.is-good {
+  color: var(--k-lettuce);
+  font-weight: 900;
+}
+
+.k-delta.is-bad {
+  color: var(--k-ketchup);
+  font-weight: 900;
+}
+
+.k-end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 8px 0 4px;
+}
+
+/* ------------------------------ animations ------------------------------ */
+
+@keyframes k-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-26px) rotate(var(--tilt, 0deg)) scale(0.9);
+  }
+  60% {
+    transform: translateY(4px) rotate(var(--tilt, 0deg)) scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--tilt, 0deg)) scale(1);
+  }
+}
+
+@keyframes k-stamp {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--tilt, 0deg)) scale(1);
+  }
+  45% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(38px) rotate(-4deg) scale(0.9);
+  }
+}
+
+@keyframes k-shake {
+  0%,
+  100% {
+    transform: rotate(var(--tilt, 0deg)) translateX(0);
+  }
+  20% {
+    transform: rotate(var(--tilt, 0deg)) translateX(-7px);
+  }
+  40% {
+    transform: rotate(var(--tilt, 0deg)) translateX(6px);
+  }
+  60% {
+    transform: rotate(var(--tilt, 0deg)) translateX(-4px);
+  }
+  80% {
+    transform: rotate(var(--tilt, 0deg)) translateX(3px);
+  }
+}
+
+@keyframes k-wobble {
+  0%,
+  100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1.4deg) translateY(-2px);
+  }
+}
+
+@keyframes k-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  35% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) scale(1.5);
+  }
+}
+
+@keyframes k-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes k-banner {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(-8deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08) rotate(2deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+}
+
+@keyframes k-wiggle {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+/* ----------------------------- reduced motion --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .play-root *,
+  .play-root *::before,
+  .play-root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Coins and the roll-up are JS-gated too; this is the belt to that braces. */
+  .k-coin {
+    display: none;
+  }
+}
+
+/* ------------------------------ responsive ------------------------------ */
+
+@media (max-width: 900px) {
+  .replay-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .k-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .k-clock {
+    font-size: 32px;
+  }
+
+  .k-popover {
+    width: min(340px, calc(100vw - 24px));
+  }
+}
+
+@media (max-width: 560px) {
+  .k-hud {
+    gap: 10px;
+  }
+
+  .k-hud-left {
+    min-width: 100%;
+  }
+
+  .k-floor {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .k-station {
+    min-height: 100px;
+  }
+
+  .k-station-emoji {
+    font-size: 28px;
+  }
+
+  .k-title {
+    font-size: 24px;
+  }
+}

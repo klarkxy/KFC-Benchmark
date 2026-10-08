@@ -3,11 +3,18 @@ import { formatMinor, formatPercent, formatSimMs } from "../lib/format";
 import { DIFFICULTY_LABELS } from "../lib/labels";
 import { readBest, loadScenarioIndex, type ScenarioSummary } from "../lib/scenarios";
 import { href } from "../router";
+import { COIN } from "../play/icons";
 
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; scenarios: ScenarioSummary[]; bests: Record<string, number> };
+
+const TIER_ART: Readonly<Record<string, string>> = {
+  easy: "🍟",
+  medium: "🌯",
+  complex: "🍱",
+};
 
 export function PlayPage(): JSX.Element {
   const [state, setState] = useState<LoadState>({ status: "loading" });
@@ -38,50 +45,47 @@ export function PlayPage(): JSX.Element {
   }, []);
 
   if (state.status === "loading") {
-    return <section className="panel notice">正在读取场景列表 …</section>;
+    return <section className="play-root k-note">正在翻菜单 …</section>;
   }
   if (state.status === "error") {
     return (
-      <section className="panel notice error">
+      <section className="play-root k-note is-bad">
         <p>无法加载场景：{state.message}</p>
-        <p className="muted">
-          本地开发请先运行 <code>pnpm exec tsx site/scripts/gen-scenarios.mts</code> 生成
-          <code> site/public/scenarios/</code> 下的场景包。
-        </p>
+        <p className="k-muted">本地开发请先运行 pnpm exec tsx site/scripts/gen-scenarios.mts。</p>
       </section>
     );
   }
 
   return (
-    <section className="stack">
-      <div className="replay-head">
+    <section className="play-root k-picker">
+      <header className="k-picker-head">
         <div>
-          <h2>试玩厨房</h2>
-          <p className="muted small">
-            浏览器里跑的是与榜单同一套确定性内核（<code>@kitchensched/game</code>
-            逐步提交决策）：你是排程员，决定什么时候开什么工、交付哪一单。
-            试玩成绩只存在你自己的浏览器里，不进榜单。
+          <h1 className="k-title">
+            <span aria-hidden="true">🍟</span> 试玩厨房
+          </h1>
+          <p className="k-muted">
+            和榜单同一套确定性内核，只不过策略由你拍板。成绩只存在你的浏览器里，不进榜。
           </p>
         </div>
-        <a className="muted small" href={href("/")}>
+        <a className="k-cta ghost" href={href("/")}>
           ← 返回榜单
         </a>
-      </div>
+      </header>
 
-      <section className="panel">
-        <h3>怎么玩</h3>
-        <ol className="how-to-list">
+      <section className="k-howto" aria-label="怎么玩">
+        <h2 className="k-side-title">怎么玩</h2>
+        <ol className="k-howto-list">
           <li>目标——5 分钟营业时间内交付尽量多订单，只赚整单交付的钱。</li>
-          <li>循环——开工生产（配方 / 工位 / 批次）→ 推进时间 → 库存够了就交付。</li>
+          <li>循环——点空闲工位开工生产，再点小票交付；时间自己会往前跑。</li>
           <li>订单不会过期，账面达成率与贪心 bot 参考分是你的及格线。</li>
         </ol>
-        <p className="muted small">提示：焦点不在任何控件上时，按空格或回车 = 推进时间。</p>
+        <p className="k-muted small">键盘：空格 / 回车 = 暂停与继续。</p>
       </section>
 
       {state.scenarios.length === 0 ? (
-        <section className="panel notice">暂无可玩场景。</section>
+        <p className="k-note">暂无可玩场景。</p>
       ) : (
-        <div className="scenario-grid">
+        <div className="k-cards">
           {state.scenarios.map((summary) => {
             const best = state.bests[summary.tier];
             const beatGreedy =
@@ -89,37 +93,66 @@ export function PlayPage(): JSX.Element {
                 ? best >= summary.greedy_score_minor
                 : null;
             return (
-              <a className="panel scenario-card" key={summary.tier} href={href(`/play/${summary.tier}`)}>
-                <div className="scenario-card-head">
-                  <h3>{summary.label}</h3>
-                  <span className="badge difficulty">{DIFFICULTY_LABELS[summary.difficulty] ?? summary.difficulty}</span>
+              <a className="k-card" key={summary.tier} href={href(`/play/${summary.tier}`)}>
+                <div className="k-card-top">
+                  <span className="k-card-art" aria-hidden="true">
+                    {TIER_ART[summary.tier] ?? "🍽️"}
+                  </span>
+                  <div>
+                    <h2 className="k-card-title">{summary.label}</h2>
+                    <span className="k-tag">
+                      {DIFFICULTY_LABELS[summary.difficulty] ?? summary.difficulty}
+                    </span>
+                  </div>
                 </div>
-                <dl className="kv">
-                  <dt>订单数</dt>
-                  <dd>{summary.order_count}</dd>
-                  <dt>工位数</dt>
-                  <dd>{summary.station_count}</dd>
-                  <dt>营业时长</dt>
-                  <dd>{formatSimMs(summary.end_at_ms)}</dd>
-                  <dt>账面总额</dt>
-                  <dd className="money">{formatMinor(summary.book_value_minor)}</dd>
-                  <dt>贪心 bot</dt>
-                  <dd className="money">{formatMinor(summary.greedy_score_minor)}</dd>
-                  <dt>你的最好成绩</dt>
-                  <dd className="money">
-                    {best === undefined ? (
-                      <span className="muted">尚无记录</span>
-                    ) : (
-                      <>
-                        {formatMinor(best)}
-                        {beatGreedy === true ? <span className="pill good">已超过 bot</span> : null}
-                      </>
-                    )}
-                  </dd>
-                  <dt>账面达成</dt>
-                  <dd>{formatPercent(summary.greedy_score_minor, summary.book_value_minor)}（bot）</dd>
-                </dl>
-                <span className="scenario-cta">进入厨房 →</span>
+
+                <ul className="k-card-stats">
+                  <li>
+                    <span>订单</span>
+                    <b>{summary.order_count}</b>
+                  </li>
+                  <li>
+                    <span>工位</span>
+                    <b>{summary.station_count}</b>
+                  </li>
+                  <li>
+                    <span>时长</span>
+                    <b>{formatSimMs(summary.end_at_ms)}</b>
+                  </li>
+                </ul>
+
+                <ul className="k-card-money">
+                  <li>
+                    <span>账面总额</span>
+                    <b>{formatMinor(summary.book_value_minor)}</b>
+                  </li>
+                  <li>
+                    <span>贪心 bot</span>
+                    <b>
+                      {COIN} {formatMinor(summary.greedy_score_minor)}
+                    </b>
+                  </li>
+                  <li>
+                    <span>你的最好成绩</span>
+                    <b>
+                      {best === undefined ? (
+                        <span className="k-muted">尚无记录</span>
+                      ) : (
+                        <>
+                          {formatMinor(best)}
+                          {beatGreedy === true ? <span className="k-stamp new">已超过 bot</span> : null}
+                        </>
+                      )}
+                    </b>
+                  </li>
+                </ul>
+
+                <p className="k-muted small">
+                  bot 账面达成率 {formatPercent(summary.greedy_score_minor, summary.book_value_minor)}
+                  {" · "}scenario <code>{summary.scenario_id}</code>
+                </p>
+
+                <span className="k-cta wide">进入厨房 →</span>
               </a>
             );
           })}
